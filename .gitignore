@@ -1,0 +1,13 @@
+**/[bB]in/
+**/[oO]bj/
+
+/QueriesTestApplication/**/bin/
+/QueriesTestApplication/**/obj/
+/QueriesTestApplication/**/[dD]ebug*/
+/QueriesTestApplication/**/Release*/
+/QueriesTestApplication/build*/
+/QueriesTestApplication/QueriesTestApplication/bin
+/QueriesTestApplication/QueriesTestApplication/obj
+
+**/.vs/**
+/.vs/
