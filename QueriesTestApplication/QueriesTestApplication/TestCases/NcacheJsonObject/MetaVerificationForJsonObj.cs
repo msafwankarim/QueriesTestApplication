@@ -11,10 +11,13 @@ using System.IO;
 using System.Text;
 using System.Threading;
 
-using Newtonsoft.Json.Linq;
 using Alachisoft.NCache.Runtime;
 using System.Data.SqlClient;
 using QueriesTestApplication.Utils;
+using System.Reflection;
+using Alachisoft.NCache.Caching.Statistics;
+using Alachisoft.NCache.Common;
+using System.Configuration.Provider;
 
 namespace QueriesTestApplication
 {
@@ -25,6 +28,8 @@ namespace QueriesTestApplication
         ICache cache;
         public Dictionary<string, ResultStatus> testResults;
         private Report _report;
+
+        private int _cleanIntervalSeconds = 5000 + 1000; // milliSeconds
 
         public Dictionary<string, ResultStatus> TestResults
         {
@@ -40,15 +45,66 @@ namespace QueriesTestApplication
 
         }
 
+        #region ---------------------------- Group Metadata --------------------------- 
+
+        public void GroupMetadataInJsonObject()
+        {
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
+            try
+            {
+                cache.Clear();
+
+                string JsonString = "{\"group\":\"DevTeam\"}";
+                var MetaData = new JsonObject(JsonString);
+
+                string key1 = "key_GroupMetadataInJObject";
+                var val = GetProduct();
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+                queryCommand.Parameters.Add("@metadata", MetaData);
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var cacheItem = cache.GetCacheItem(key1);
+
+                var GroupAttribute = (JsonValue)cacheItem.Group;
+
+                if (GroupAttribute.Value.ToString() == "DevTeam")
+                    _report.AddPassedTestCase(methodName, "Success: Add Group Metadata In Jsonbject ");
+
+                else
+                    throw new Exception("Failure:  Add Group Metadata In JsonObject");
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+        }
+
+        #endregion
+
+
         #region --------------------------------- Priority  ---------------------------------
 
+        //   ..... Cache Item Priority
+        //  AboveNormal
+        //  BelowNormal
+        //  High
+        //  Low
+        //  Normal
+        //  NotRemovable
 
-        /// <summary>
-        /// Adds JSON Object as MetaData having  information of Priority
-        /// </summary>
-        public void PriorityMetadataInJsonObject()
+        public void AboveNormalPriority()
         {
-            var methodName = "PriorityMetadataInJsonObject";
+            var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
                 cache.Clear();
@@ -75,11 +131,231 @@ namespace QueriesTestApplication
 
                 if (PriorityAttribute == CacheItemPriority.AboveNormal)
                 {
-                    _report.AddPassedTestCase(methodName,"Success: Add Priority Metadata In JSON Object ");
+                    _report.AddPassedTestCase(methodName, "Success: Add Priority Metadata In JSON Object ");
                 }
                 else
                 {
-                   throw new Exception("Failure:  Add Priority Metadata In JSON Object");
+                    throw new Exception("Failure:  Add Priority Metadata In JSON Object");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+        }
+
+        public void BelowNormalPriority()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                cache.Clear();
+
+                JsonObject MetaData = new JsonObject();
+                MetaData.AddAttribute("Priority", "BelowNormal");
+
+                string key1 = "key_PriorityMetadataInJsonObject";
+                var val = GetProduct();
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+                queryCommand.Parameters.Add("@metadata", MetaData);
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var cacheItem = cache.GetCacheItem(key1);
+
+                var PriorityAttribute = cacheItem.Priority;
+
+                if (PriorityAttribute == CacheItemPriority.AboveNormal)
+                {
+                    _report.AddPassedTestCase(methodName, "Success: Add BelowNormal Priority Metadata In JSON Object ");
+                }
+                else
+                {
+                    throw new Exception("Failure:  Add  BelowNormal Priority Metadata In JSON Object");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+        }
+
+        public void HighPriority()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                cache.Clear();
+
+                JsonObject MetaData = new JsonObject();
+                MetaData.AddAttribute("Priority", "High");
+
+                string key1 = "key_PriorityMetadataInJsonObject";
+                var val = GetProduct();
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+                queryCommand.Parameters.Add("@metadata", MetaData);
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var cacheItem = cache.GetCacheItem(key1);
+
+                var PriorityAttribute = cacheItem.Priority;
+
+                if (PriorityAttribute == CacheItemPriority.AboveNormal)
+                {
+                    _report.AddPassedTestCase(methodName, "Success: Add High Priority Metadata In JSON Object ");
+                }
+                else
+                {
+                    throw new Exception("Failure:  Add  High Priority Metadata In JSON Object");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+        }
+
+        public void LowPriority()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                cache.Clear();
+
+                JsonObject MetaData = new JsonObject();
+                MetaData.AddAttribute("Priority", "Low");
+
+                string key1 = "key_PriorityMetadataInJsonObject";
+                var val = GetProduct();
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+                queryCommand.Parameters.Add("@metadata", MetaData);
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var cacheItem = cache.GetCacheItem(key1);
+
+                var PriorityAttribute = cacheItem.Priority;
+
+                if (PriorityAttribute == CacheItemPriority.Low)
+                {
+                    _report.AddPassedTestCase(methodName, "Success: Add Low Priority Metadata In JSON Object ");
+                }
+                else
+                {
+                    throw new Exception("Failure:  Add  Low Priority Metadata In JSON Object");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+        }
+
+        public void NormalPriority()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                cache.Clear();
+
+                JsonObject MetaData = new JsonObject();
+                MetaData.AddAttribute("Priority", "Normal");
+
+                string key1 = "key_PriorityMetadataInJsonObject";
+                var val = GetProduct();
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+                queryCommand.Parameters.Add("@metadata", MetaData);
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var cacheItem = cache.GetCacheItem(key1);
+
+                var PriorityAttribute = cacheItem.Priority;
+
+                if (PriorityAttribute == CacheItemPriority.Normal)
+                {
+                    _report.AddPassedTestCase(methodName, "Success: Add Normal Priority Metadata In JSON Object ");
+                }
+                else
+                {
+                    throw new Exception("Failure:  Add  Normal Priority Metadata In JSON Object");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+        }
+
+        public void NotRemovablePriority()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                cache.Clear();
+
+                JsonObject MetaData = new JsonObject();
+                MetaData.AddAttribute("Priority", "NotRemovable");
+
+                string key1 = "key_PriorityMetadataInJsonObject";
+                var val = GetProduct();
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+                queryCommand.Parameters.Add("@metadata", MetaData);
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var cacheItem = cache.GetCacheItem(key1);
+
+                var PriorityAttribute = cacheItem.Priority;
+
+                if (PriorityAttribute == CacheItemPriority.NotRemovable)
+                {
+                    _report.AddPassedTestCase(methodName, "Success: Add NotRemovable Priority Metadata In JSON Object ");
+                }
+                else
+                {
+                    throw new Exception("Failure:  Add  NotRemovable Priority Metadata In JSON Object");
                 }
 
             }
@@ -92,17 +368,12 @@ namespace QueriesTestApplication
 
         #endregion
 
+
         #region --------------------------------- Expiration ---------------------------------
 
-        /// <summary>
-        /// Adds JSON Object having Metadata information of Expiration 
-        /// </summary>
-        /// <remarks>
-        /// Waits for 25 seconds, for Clean Interval to Remove Expired object
-        /// </remarks>
-        private void ExpirationMetadataInJsonObject()
+        private void NoneExpirationInJsonObject()
         {
-            var methodName = "ExpirationMetadataInJsonObject";
+            var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
                 cache.Clear();
@@ -110,8 +381,8 @@ namespace QueriesTestApplication
                 JsonObject MetaData = new JsonObject();
 
                 JsonObject expiration = new JsonObject();
-                expiration.AddAttribute("type", "absolute");
-                expiration.AddAttribute("interval", 2);
+                expiration.AddAttribute("type", "None");
+                expiration.AddAttribute("interval", 1);
 
                 MetaData.AddAttribute("expiration", expiration);
 
@@ -130,18 +401,14 @@ namespace QueriesTestApplication
                 var result = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 var ItemFromCache = cache.GetCacheItem(key1);
+                var expirationFromCache = ItemFromCache.Expiration;
 
-                Console.WriteLine("Waiting for 25 Seconds for Testing Expiration ");
-                Thread.Sleep(25000);
-                var returned = cache.Get<Alachisoft.NCache.Sample.Data.Product>(key1);
-                if (returned != null)
-                {
-                    throw new Exception("Failure: Add ExpirationMetadata in JSON object");
-                }
-                else
-                {
-                    _report.AddPassedTestCase(methodName, "Success: Add ExpirationMetadata in JSON object");
-                }
+                if (expirationFromCache.Type != ExpirationType.None)
+                    throw new Exception("Cache item obtanined doesnot have None expiration");
+
+                _report.AddPassedTestCase(methodName, "Success: Add None Expiration in JSON object");
+
+
 
             }
             catch (Exception ex)
@@ -152,39 +419,20 @@ namespace QueriesTestApplication
 
         }
 
-        #endregion
-
-        #region --------------------------------- Named Tags ---------------------------------
-
-        /// <summary>
-        ///  Adds JSON Object having Metadata information of NameTags  
-        /// </summary>
-        public void NameTagMetadataInJSONObject()
+        private void SlidingExpirationInJsonObject()
         {
-            var methodName = "NameTagMetadataInJSONObject";
+            var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
                 cache.Clear();
 
-                //JSON Object to be Added as MetaData
-                var MetaData = new JsonObject();
+                JsonObject MetaData = new JsonObject();
 
-                //NameTags
-                JsonObject FlashDiscount = new JsonObject();
-                FlashDiscount.AddAttribute("FlashDiscount", "NoFlashDiscount");
-                FlashDiscount.AddAttribute("type", "string");
+                JsonObject expiration = new JsonObject();
+                expiration.AddAttribute("type", "sliding");
+                expiration.AddAttribute("interval", ExpirationTimes.SlidingExpirationSeconds);
 
-                JsonObject Discount = new JsonObject();
-                Discount.AddAttribute("Discount", "Yes");
-                Discount.AddAttribute("type", "string");
-
-                //NameTagArray Containing all the NameTags
-                JsonArray NameTagsArray = new JsonArray();
-                NameTagsArray.Add(FlashDiscount);
-                NameTagsArray.Add(Discount);
-
-                //Adding nameTagArray in JsonObject
-                MetaData.AddAttribute("namedtags", NameTagsArray);
+                MetaData.AddAttribute("expiration", expiration);
 
                 string key1 = "abc";
                 var val = GetProduct();
@@ -192,42 +440,340 @@ namespace QueriesTestApplication
                 string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
 
                 QueryCommand queryCommand = new QueryCommand(query);
+
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+                queryCommand.Parameters.Add("@metadata", MetaData);
+
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var ItemFromCache = cache.GetCacheItem(key1);
+                var expirationFromCache = ItemFromCache.Expiration;
+
+                if (expirationFromCache.Type != ExpirationType.Sliding)
+                    throw new Exception("Cache item obtanined doesnot have sliding expiration");
+
+                int sleepTime = ExpirationTimes.SlidingExpirationSeconds * 1000 + _cleanIntervalSeconds * 1000;
+                Console.WriteLine($"Waiting for {sleepTime} milli seconds before verifying sliding expiration");
+                Thread.Sleep(sleepTime);
+
+                ItemFromCache = cache.GetCacheItem(key1);
+
+                if (ItemFromCache == null)
+                    _report.AddPassedTestCase(methodName, "Success: Add Sliding Expiration in JSON object");
+                else
+                    throw new Exception("Failure: Add Sliding Metadata in JSON object");
+
+
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+        }
+
+        private void AbsoluteExpirationInJsonObject()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                cache.Clear();
+
+                JsonObject MetaData = new JsonObject();
+
+                JsonObject expiration = new JsonObject();
+                expiration.AddAttribute("type", "absolute");
+                expiration.AddAttribute("interval", ExpirationTimes.AbosluteExpirationSeconds);
+
+                MetaData.AddAttribute("expiration", expiration);
+
+                string key1 = "abc";
+                var val = GetProduct();
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+
                 queryCommand.Parameters.Add("@key1", key1);
                 queryCommand.Parameters.Add("@val", val);
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
                 var result = cache.SearchService.ExecuteNonQuery(queryCommand);
-                var cacheItem = cache.GetCacheItem(key1);
 
-                var Attributes = cacheItem.NamedTags;
+                var ItemFromCache = cache.GetCacheItem(key1);
 
-                if (Attributes.Contains("Discount") && Attributes.Contains("FlashDiscount"))
+                if (ItemFromCache.Expiration.Type != ExpirationType.Absolute)
+                    throw new Exception("Item obtained does not have absolute expiration");
+
+                int sleepTime = ExpirationTimes.AbosluteExpirationSeconds * 1000 + _cleanIntervalSeconds * 1000;
+
+                Console.WriteLine($"Waiting for {sleepTime} MilliSeconds for Testing Expiration ");
+                Thread.Sleep(sleepTime);
+
+                var returned = cache.Get<Alachisoft.NCache.Sample.Data.Product>(key1);
+                if (returned != null)
                 {
-                    _report.AddPassedTestCase(methodName, "Success: Add NameTagMetaData in JSON object");
+                    throw new Exception("Failure: Add Absolute Expiration Metadata in JSON object");
                 }
                 else
                 {
-                    throw new Exception("Failure: Add NameTagMetaData in JSON object");
-                    
+                    _report.AddPassedTestCase(methodName, "Success:Add Absolute Expiration  in JSON object");
                 }
+
             }
             catch (Exception ex)
             {
                 _report.AddFailedTestCase(methodName, ex);
+
             }
 
         }
 
+        private void DefaultAbsoluteExpirationInJsonObject()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                cache.Clear();
+
+                JsonObject MetaData = new JsonObject();
+
+                JsonObject expiration = new JsonObject();
+                expiration.AddAttribute("type", "DefaultAbsolute");
+                expiration.AddAttribute("interval", ExpirationTimes.DefaultAbsolute);
+
+                MetaData.AddAttribute("expiration", expiration);
+
+                string key1 = "abc";
+                var val = GetProduct();
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+                queryCommand.Parameters.Add("@metadata", MetaData);
+
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var ItemFromCache = cache.GetCacheItem(key1);
+                var expirationFromCache = ItemFromCache.Expiration;
+
+
+                if (expirationFromCache.Type != ExpirationType.DefaultAbsolute)
+                    throw new Exception("Cache item obtanined doesnot have DefaultAbsolute expiration");
+
+                var sleepTime = ExpirationTimes.DefaultAbsolute * 1000 + _cleanIntervalSeconds * 1000;
+                Console.WriteLine($"Waiting for {sleepTime} milli seconds before verifying DefaultAbsolute expiration");
+                Thread.Sleep(sleepTime);
+
+                ItemFromCache = cache.GetCacheItem(key1);
+
+                if (ItemFromCache == null)
+                    _report.AddPassedTestCase(methodName, "Success: Add DefaultAbsolute Expiration in JSON object");
+                else
+                    throw new Exception("Failure: Add DefaultAbsolute Metadata in JSON object");
+
+
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+        }
+
+        private void DefaultAbsoluteLongerExpirationInJsonObject()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                cache.Clear();
+
+                JsonObject MetaData = new JsonObject();
+
+                JsonObject expiration = new JsonObject();
+                expiration.AddAttribute("type", "DefaultAbsoluteLonger");
+                expiration.AddAttribute("interval", ExpirationTimes.DefaultAbsoluteLonger);
+
+                MetaData.AddAttribute("expiration", expiration);
+
+                string key1 = "abc";
+                var val = GetProduct();
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+                queryCommand.Parameters.Add("@metadata", MetaData);
+
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var ItemFromCache = cache.GetCacheItem(key1);
+                var expirationFromCache = ItemFromCache.Expiration;
+
+
+                if (expirationFromCache.Type != ExpirationType.DefaultAbsoluteLonger)
+                    throw new Exception("Cache item obtanined doesnot have DefaultAbsoluteLonger expiration");
+
+                var sleepTime = ExpirationTimes.DefaultAbsoluteLonger * 1000 + _cleanIntervalSeconds * 1000;
+                Console.WriteLine($"Waiting for {sleepTime} milli seconds before verifying DefaultAbsoluteLonger expiration");
+
+                Thread.Sleep(sleepTime);
+
+                ItemFromCache = cache.GetCacheItem(key1);
+
+                if (ItemFromCache == null)
+                    _report.AddPassedTestCase(methodName, "Success: Add DefaultAbsoluteLonger Expiration in JSON object");
+                else
+                    throw new Exception("Failure: Add DefaultAbsoluteLonger Metadata in JSON object");
+
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+        }
+
+        private void DefaultSlidingExpirationInJsonObject()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                cache.Clear();
+
+                JsonObject MetaData = new JsonObject();
+
+                JsonObject expiration = new JsonObject();
+                expiration.AddAttribute("type", "DefaultSliding");
+                expiration.AddAttribute("interval", ExpirationTimes.DefaultSliding);
+
+                MetaData.AddAttribute("expiration", expiration);
+
+                string key1 = "abc";
+                var val = GetProduct();
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+                queryCommand.Parameters.Add("@metadata", MetaData);
+
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var ItemFromCache = cache.GetCacheItem(key1);
+                var expirationFromCache = ItemFromCache.Expiration;
+
+
+                if (expirationFromCache.Type != ExpirationType.DefaultSliding)
+                    throw new Exception("Cache item obtanined doesnot have DefaultSliding expiration");
+
+                var sleepTime = ExpirationTimes.DefaultSliding * 1000 + _cleanIntervalSeconds * 1000;
+                Console.WriteLine($"Waiting for {sleepTime} milli seconds before verifying sliding expiration");
+                Thread.Sleep(sleepTime);
+
+                ItemFromCache = cache.GetCacheItem(key1);
+
+                if (ItemFromCache == null)
+                    _report.AddPassedTestCase(methodName, "Success: Add DefaultSliding Expiration in JSON object");
+                else
+                    throw new Exception("Failure: Add DefaultSliding Metadata in JSON object");
+
+
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+        }
+
+        private void DefaultSlidingLongerExpirationInJsonObject()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                cache.Clear();
+
+                JsonObject MetaData = new JsonObject();
+
+                JsonObject expiration = new JsonObject();
+                expiration.AddAttribute("type", "DefaultSlidingLonger");
+                expiration.AddAttribute("interval", ExpirationTimes.DefaultSlidingLonger);
+
+                MetaData.AddAttribute("expiration", expiration);
+
+                string key1 = "abc";
+                var val = GetProduct();
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+                queryCommand.Parameters.Add("@metadata", MetaData);
+
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var ItemFromCache = cache.GetCacheItem(key1);
+                var expirationFromCache = ItemFromCache.Expiration;
+
+
+                if (expirationFromCache.Type != ExpirationType.DefaultSlidingLonger)
+                    throw new Exception("Cache item obtanined doesnot have DefaultSlidingLonger expiration");
+
+                var sleepTime = ExpirationTimes.DefaultSlidingLonger * 1000 + _cleanIntervalSeconds * 1000;
+                Console.WriteLine($"Waiting for {sleepTime} milli seconds before verifying sliding expiration");
+
+                Thread.Sleep(sleepTime);
+
+                ItemFromCache = cache.GetCacheItem(key1);
+
+                if (ItemFromCache == null)
+                    _report.AddPassedTestCase(methodName, "Success: Add DefaultSlidingLonger Expiration in JSON object");
+                else
+                    throw new Exception("Failure: Add DefaultSlidingLonger Metadata in JSON object");
+
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+        }
+
+
         #endregion
+
 
         #region --------------------------------- Tags ---------------------------------
 
-        /// <summary>
-        /// Adds JSON Object having Metadata information of TAGS
-        /// </summary>
         public void TagsMetadataInJSONObject()
         {
-            var methodName = "TagsMetadataInJSONObject";
+            var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
                 cache.Clear();
@@ -254,7 +800,7 @@ namespace QueriesTestApplication
 
                 Tag[] SearchTags = new Tag[2] { new Tag("Important Product"), new Tag("Imported Product") };
                 //Tag[] SearchTags = new Tag[2] { new Tag("\"Important Product\""), new Tag("Imported Product") };
-                IDictionary<string, Product> data = cache.SearchService.GetByTags<Product>(SearchTags, TagSearchOptions.ByAnyTag);
+                IDictionary<string, Product> data = cache.SearchService.GetByTags<Product>(SearchTags, TagSearchOptions.ByAllTags);
 
                 if (data.Count > 0)
                 {
@@ -276,11 +822,450 @@ namespace QueriesTestApplication
 
         #endregion
 
+
+        #region --------------------------------- Named Tags ---------------------------------
+
+        public void NameTagMetadataInJSONObject()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                cache.Clear();
+
+                //JSON Object to be Added as MetaData
+                var MetaData = new JsonObject();
+
+                //NameTags
+                JsonObject FlashDiscount = new JsonObject();
+                FlashDiscount.AddAttribute("FlashDiscount", "NoFlashDiscount");
+                FlashDiscount.AddAttribute("type", "string");
+
+                JsonObject Discount = new JsonObject();
+                Discount.AddAttribute("Discount", "Yes");
+                Discount.AddAttribute("type", "string");
+
+                JsonObject Percentage = new JsonObject();
+                FlashDiscount.AddAttribute("Percentage", 1.2);
+                FlashDiscount.AddAttribute("type", "double");
+
+                //NameTagArray Containing all the NameTags
+                JsonArray NameTagsArray = new JsonArray();
+                NameTagsArray.Add(FlashDiscount);
+                NameTagsArray.Add(Discount);
+
+                //Adding nameTagArray in JsonObject
+                MetaData.AddAttribute("namedtags", NameTagsArray);
+
+                string key1 = "abc";
+                var val = GetProduct();
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+                queryCommand.Parameters.Add("@metadata", MetaData);
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var cacheItem = cache.GetCacheItem(key1);
+
+                var Attributes = cacheItem.NamedTags;
+
+                if (Attributes.Contains("Discount") && Attributes.Contains("FlashDiscount") && Attributes.Contains("Percentage"))
+                {
+                    _report.AddPassedTestCase(methodName, "Success: Add NameTagMetaData in JSON object");
+                }
+                else
+                {
+                    throw new Exception("Failure: Add NameTagMetaData in JSON object");
+
+                }
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+        }
+
+        #endregion
+
+
+        #region ------------------------- Db Dependency -------------------------
+
+        private void VerifyDbDependency()
+        {
+            string methodName = MethodBase.GetCurrentMethod().Name;
+            string Itemkey = "SqlDBDependency";
+            Product item = GetProduct();
+
+            try
+            {
+                string AddItemWithDependencyQuery = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                //var JsonForDependency = @"{'dependency': [{'sql': {'connectionstring': 'Data Source=AQIB-NAVEED;Initial Catalog=Northwind;Integrated Security=True;','querystring': 'SELECT CustomerID, Address, City FROM dbo.Customers;'}}]}";
+                var JsonForDependency = "{\"dependency\": [{\"sql\": {\"connectionstring\": \"Data Source=AQIB-NAVEED;Initial Catalog=Northwind;Integrated Security=True;\",\"querystring\": \"SELECT CustomerID, Address, City FROM dbo.Customers;\"}}]}";
+                var jsonObject = new JsonObject(JsonForDependency);
+                QueryCommand queryCommand = new QueryCommand(AddItemWithDependencyQuery);
+
+                queryCommand.Parameters.Add("@key1", Itemkey);
+                queryCommand.Parameters.Add("@val", item);
+                queryCommand.Parameters.Add("@metadata", jsonObject);
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var cacheItem = cache.GetCacheItem(Itemkey);
+
+
+                if (!(cacheItem.Dependency is SqlCacheDependency))
+                    throw new Exception($"registeres sql dependency but got {cacheItem.Dependency.GetType().FullName}");
+
+                // Explicitly make some change in DB
+
+                string connetionString = @"Data Source=AQIB-NAVEED;Initial Catalog=Northwind;Integrated Security=True;";
+                SqlConnection cnn = new SqlConnection(connetionString);
+                cnn.Open();
+
+                Random random = new Random();
+                int street = random.Next(1, 1000);
+
+                string UpdateQuery = "UPDATE [Northwind].[dbo].[Customers]";
+                UpdateQuery += "SET Address = 'Obere Str." + street + "'";
+                UpdateQuery += "WHERE CustomerID = 'ALFKI' ";
+
+                //Console.WriteLine("Query is "+ UpdateQuery);
+
+                SqlCommand command;
+                SqlDataAdapter adapter = new SqlDataAdapter();
+
+                command = new SqlCommand(UpdateQuery, cnn);
+                adapter.UpdateCommand = command;
+                adapter.UpdateCommand.ExecuteNonQuery();
+
+
+                // After changing in Db
+                var returned = cache.Get<Alachisoft.NCache.Sample.Data.Product>(Itemkey);
+                if (returned == null)
+                {
+                    _report.AddPassedTestCase(methodName, "Success: Add SQL DB Dependency ");
+
+                }
+                else
+                {
+                    throw new Exception("Failed: Add SQL DB Dependency ");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+
+
+        }
+
+        #endregion
+
+
+        #region ------------------------- Custom Dependency -------------------------
+
+        // doubt...........
+
+        /// <summary>
+        /// Adds an Item in cache with custom dependency.
+        /// Then verifies if the item is still in cache or not after 25 seconds
+        /// </summary>
+        /// <remarks>
+        /// The custom dependecy configured is that the  item expires after 10 seconds.
+        /// (i.e hasChanged returns true after 10 seconds)
+        /// </remarks>
+        private void VerifyCustomDependency()
+        {
+            string methodName = MethodBase.GetCurrentMethod().Name;
+            cache.Clear();
+            string Itemkey = "KeyForCustomDependency";
+            Product item = GetProduct();
+            string ProviderName = "MyCustomDependencyProvider"; // configured in cache
+
+            try
+            {
+                string AddItemWithDependencyQuery = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                var JsonForDependency = "{\"dependency\": [{\"custom\":" +
+                    " {\"providername\": \"" + ProviderName + "\"," +
+                    "\"param\":{\"id\":\"101\"," +
+                    "\"connectionstring\":\"NoConnectionStringForTesting\"}}}]}";
+
+                var jsonObj = new JsonObject(JsonForDependency);
+
+                QueryCommand queryCommand = new QueryCommand(AddItemWithDependencyQuery);
+                queryCommand.Parameters.Add("@key1", Itemkey);
+                queryCommand.Parameters.Add("@val", item);
+                queryCommand.Parameters.Add("@metadata", jsonObj);
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                Console.WriteLine("Sleeping for 25 seconds to verify Custom dependency");
+                Thread.Sleep(25000);
+
+                var cacheItem = cache.GetCacheItem(Itemkey);
+                if (cacheItem == null)
+                    _report.AddPassedTestCase(methodName, "Success: Add Custom Dependency ");
+
+                else
+                    throw new Exception("Failure: Add Custom Dependency ");
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+
+
+        }
+
+        #endregion
+
+
+        #region ------------------------- File Dependency -------------------------
+
+        private void VerifyFileDependency()
+        {
+            string methodName = MethodBase.GetCurrentMethod().Name;
+            cache.Clear();
+            string Itemkey = "KeyForFileDependency";
+            Product item = GetProduct();
+
+            try
+            {
+                string filePath = "C:\\dependencyFile.txt";
+                File.AppendAllText(filePath, "This file is used to verify file dependency in ncache by queries.");
+
+                string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                var jsonString = "{\"dependency\": [{\"file\": {\"fileName\":" + $"\"{filePath}\"" + "}}]}";
+
+                var jsonObj = new JsonObject(jsonString);
+
+                //  var jsonObj = new JsonObject();
+                // jsonObj.AddAttribute("dependency", "file");
+                //jsonObj.AddAttribute("fileName", filePath);
+
+                // FileDependency 
+                // SqlCacheDependency 
+
+
+                QueryCommand queryCommand = new QueryCommand(query);
+                queryCommand.Parameters.Add("@key1", Itemkey);
+                queryCommand.Parameters.Add("@val", item);
+                queryCommand.Parameters.Add("@metadata", jsonObj);
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                File.AppendAllText(filePath, "Modifying file to verify dependency");
+
+
+                var cacheItem = cache.GetCacheItem(Itemkey);
+                if (cacheItem == null)
+                    _report.AddPassedTestCase(methodName, "Success: Add File Dependency ");
+
+                else
+                    throw new Exception("Failure: Add File Dependency ");
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+
+
+        }
+
+        #endregion
+
+
+        #region ------------------------- Resync Options  -------------------------
+
+        private void VerifyResyncOption()
+        {
+            string methodName = MethodBase.GetCurrentMethod().Name;
+            cache.Clear();
+            string Itemkey = "KeyForResyncOption";
+            Product item = GetProduct();
+
+            try
+            {
+                string providerName = "NoPrvider";
+                string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                var jsonObj = new JsonObject();
+                jsonObj.AddAttribute("ResyncOnExpiration", "true");
+                //jsonObj.AddAttribute("ResyncOptions", "true");
+                jsonObj.AddAttribute("providerName", providerName);
+
+
+                QueryCommand queryCommand = new QueryCommand(query);
+                queryCommand.Parameters.Add("@key1", Itemkey);
+                queryCommand.Parameters.Add("@val", item);
+                queryCommand.Parameters.Add("@metadata", jsonObj);
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var cacheItem = cache.GetCacheItem(Itemkey);
+
+                var options = cacheItem.ResyncOptions;
+                if (options == null || options.ResyncOnExpiration == false || options.ProviderName != providerName)
+                    throw new Exception("Failure: Add Resync Options");
+                else
+                    _report.AddPassedTestCase(methodName, "Success: Add File Dependency ");
+
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+
+
+        }
+
+        #endregion
+
+
+
+        #region ------------------------- (ToDo) Cache item version  -------------------------
+
+        //private void VerifyCacheItemVersion()
+        //{
+        //    string methodName = MethodBase.GetCurrentMethod().Name;
+        //    cache.Clear();
+        //    string Itemkey = "KeyForCacheItemVersion";
+        //    Product item = GetProduct();
+
+        //    try
+        //    {
+        //        string guidKey = Guid.NewGuid().ToString();
+
+        //        CacheItemVersion version = cache.Insert(guidKey, item);
+        //        ulong itemVersion = version.Version;
+
+        //        string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+        //        var jsonObj = new JsonObject();
+        //        jsonObj.AddAttribute("CacheItemVersion", itemVersion);
+
+
+
+        //        QueryCommand queryCommand = new QueryCommand(query);
+        //        queryCommand.Parameters.Add("@key1", Itemkey);
+        //        queryCommand.Parameters.Add("@val", item);
+        //        queryCommand.Parameters.Add("@metadata", jsonObj);
+
+        //        var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+        //        var cacheItem = cache.GetCacheItem(Itemkey);
+
+        //        var options = cacheItem.ResyncOptions;
+        //        if (options == null || options.ResyncOnExpiration == false || options.ProviderName != providerName)
+        //            throw new Exception("Failure: Add Resync Options");
+        //        else
+        //            _report.AddPassedTestCase(methodName, "Success: Add File Dependency ");
+
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _report.AddFailedTestCase(methodName, ex);
+        //    }
+
+
+
+        //}
+
+        #endregion
+
+
+        #region ------------------------- SyncDependency   -------------------------
+
+        private void VerifySyncDependency()
+        {
+            string methodName = MethodBase.GetCurrentMethod().Name;
+            cache.Clear();
+            string Itemkey = "KeyForSyncDependency";
+            Product item = GetProduct();
+
+            try
+            {
+                // it also requires id password and server info  how can i pass that
+                
+                string remoteCacheId  = "remoteCache";
+                    
+                string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                var jsonString = "{\"dependency\": [{\"syncdependency\": {\"remoteCache\":" + $"\"{remoteCacheId}\"" + ",\"key\":" + $"\"{Itemkey}\"" + " }}]}";
+                                
+                var jsonObj = new JsonObject(jsonString);               
+
+                QueryCommand queryCommand = new QueryCommand(query);
+                queryCommand.Parameters.Add("@key1", Itemkey);
+                queryCommand.Parameters.Add("@val", item);
+                queryCommand.Parameters.Add("@metadata", jsonObj);
+
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var cacheItem = cache.GetCacheItem(Itemkey);
+
+                var syncDependency = cacheItem.SyncDependency;
+
+                if (syncDependency == null)                
+                   throw new Exception("Failure: syncDependency is not registers with query");
+
+                if (syncDependency.Key != Itemkey)
+                    throw new Exception("Failure: key is not equal to rgistered key");
+
+                if (syncDependency.CacheId != remoteCacheId)
+                    throw new Exception("Failure: CacheId is not equal to registerd cache id");
+                
+                
+                _report.AddPassedTestCase(methodName, "Success: Add File Dependency ");
+
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+
+
+        }
+
+        #endregion
+
+
         private Product GetProduct()
         {
 
             return new Product() { Id = 1, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 357, Order = new Alachisoft.NCache.Sample.Data.Order { OrderID = 10, ShipCity = "rawalpindi" } };
         }
+
+    }
+
+    public static class ExpirationTimes
+    {
+        public static int SlidingExpirationSeconds = 10;
+        public static int AbosluteExpirationSeconds = 10;
+
+        public static int DefaultAbsolute = 10;
+        public static int DefaultAbsoluteLonger = 10;
+
+        public static int DefaultSliding = 10;
+        public static int DefaultSlidingLonger = 10;
 
     }
 
