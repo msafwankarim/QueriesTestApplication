@@ -1,1 +1,4 @@
-Is aggregate dependency supported.
+Is aggregate dependency supported. how will i add multiple dependencies in aggregate dependency
+how can i pass array of key\file dependency.
+extensible dependency custom dependency
+cache sync dependency also requires id password and server info how can i pass that

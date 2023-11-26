@@ -46,10 +46,8 @@ namespace QueriesTestApplication
 
         //public Expiration Expiration { get; set; }          
         //public CacheItemVersion Version { get; set; }
-        //public ResyncOptions ResyncOptions { get; set; }     
-             
-        //public CacheSyncDependency SyncDependency { get; set; }
-        
+        //public ResyncOptions ResyncOptions { get; set; }                 
+        //public CacheSyncDependency SyncDependency { get; set; }        
         //public CacheDependency Dependency { get; set; }
 
         #region ------------------------- Group Metadata ------------------------- 
