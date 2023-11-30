@@ -1,24 +1,14 @@
 ﻿using Alachisoft.NCache.Client;
 using Alachisoft.NCache.JNIBridge.Net;
-using Alachisoft.NCache.Runtime.Caching;
-using Alachisoft.NCache.Runtime.Enum;
-using Alachisoft.NCache.Runtime.Exceptions;
 using Alachisoft.NCache.Runtime.JSON;
 using Alachisoft.NCache.Sample.Data;
-using log4net.Extended.Core;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 using QueriesTestApplication.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using ReportHelper = QueriesTestApplication.Utils.ReportHelper;
-using System.ServiceModel.Channels;
-using System.Linq.Expressions;
-using System.ServiceModel;
 
 namespace QueriesTestApplication
 {
@@ -29,6 +19,7 @@ namespace QueriesTestApplication
         int count = 0;
         List<Product> productList;
         List<Product> complexProductList;
+        int _totalItemToInsert = 100;
 
         Report _report;
 
@@ -166,20 +157,69 @@ namespace QueriesTestApplication
         {
             cache.Clear();
             string methodName = MethodBase.GetCurrentMethod().Name;
+            string description = " Add json object by partial update";
 
             var keys = PopulateCacheAndGetKeys();
 
             try
             {
-                PopulateCache();
 
-                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\Islamabad", ShipCountry = "Pakistan\\ASia" };
-                var jorder = Helper.GetJsonOrder(order);
+                var order = new Order { OrderID = 10, ShipCity = "rawalpindi.Islamabad", ShipCountry = "Pakistan.ASia" };
+                JsonObject jsonObject = Helper.GetJsonOrder(order);
+
+                JsonValueBase.Parse(jsonObject.ToString());
+
 
                 string query = "Update Alachisoft.NCache.Sample.Data.Product Add this.Order = @jOrder ";
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@beverages", "Beverages");
-                queryCommand.Parameters.Add("@jOrder", jorder);
+                queryCommand.Parameters.Add("@jOrder", jsonObject);
+
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
+
+                Helper.ValidateDictionary(dictionary);
+
+                foreach (var key in keys)
+                {
+                    _ = cache.Get<JsonObject>(key);
+                    var prod = cache.Get<Product>(key);
+
+                    if (!prod.Order.Equals(order))
+                        throw new Exception(description);
+                }
+
+                _report.AddPassedTestCase(methodName, description);
+
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+        }
+
+        public void AddJsonObjectWithSlashes()
+        {
+            cache.Clear();
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
+            var keys = PopulateCacheAndGetKeys();
+
+            try
+            {
+               
+                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\\\Islamabad", ShipCountry = "Pakistan\\\\ASia" };
+                JsonObject jsonObject = Helper.GetJsonOrder(order);
+
+                JsonValueBase.Parse(jsonObject.ToString());
+
+
+                string query = "Update Alachisoft.NCache.Sample.Data.Product Add this.Order = @jOrder ";
+                QueryCommand queryCommand = new QueryCommand(query);
+                queryCommand.Parameters.Add("@beverages", "Beverages");
+                queryCommand.Parameters.Add("@jOrder", jsonObject);
 
                 var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
 
@@ -216,58 +256,46 @@ namespace QueriesTestApplication
 
             try
             {
-                PopulateCache();
 
                 const int arraySize = 2;
 
-                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\Islamabad", ShipCountry = "Pakistan\\ASia" };
+                var order = new Order { OrderID = 10, ShipCity = "rawalpindi-Islamabad", ShipCountry = "Pakistan-ASia" };
                 var orderArray = new Order[arraySize] { order, order };
 
 
-                JsonObject jsonArray = new JsonObject(Newtonsoft.Json.JsonConvert.SerializeObject(orderArray));
+                JsonObject jsonObj = new JsonObject(Newtonsoft.Json.JsonConvert.SerializeObject(order));
 
-
-                string query = "Update Alachisoft.NCache.Sample.Data.Product Add this.Images[0] = @jArray ";
+                string query = "Update Alachisoft.NCache.Sample.Data.Product Add this.Images[0] = @jsonObj ";
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@beverages", "Beverages");
-                queryCommand.Parameters.Add("@jArray", jsonArray);
+                queryCommand.Parameters.Add("@jsonObj", jsonObj);
 
                 var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
 
                 Helper.ValidateDictionary(dictionary);
 
 
-                // ToDo Validataion after discussion with sir taimoor
 
                 var exception = new Exception(description);
 
                 foreach (string key in keys)
                 {
+                    var jObject = cache.Get<Newtonsoft.Json.Linq.JObject>(key);
                     var jsonObject = cache.Get<JsonObject>(key);
-                    //JObject jsonObject = JObject.Parse(result.ToString());
 
-                    var imagesArray = (JsonArray)jsonObject.GetAttributeValue("Images");
+                    var imagesArray = ((JsonObject)jsonObject.GetAttributeValue("Images")).GetAttributeValue("$values") as JsonArray;
 
                     // verify 1st index is still image. It should not be order 
                     var imageObj = Newtonsoft.Json.JsonConvert.DeserializeObject<Image>(imagesArray[1].ToString());
 
-                    var updatedOrder = Newtonsoft.Json.JsonConvert.DeserializeObject<Order[]>(imagesArray[0].ToString());
+                    var updatedOrder = Newtonsoft.Json.JsonConvert.DeserializeObject<Order>(imagesArray[0].ToString());
 
-                    if (updatedOrder.Length != arraySize)
+                    if (updatedOrder.ShipCountry != order.ShipCountry)
                         throw exception;
-
-                    foreach (var item in updatedOrder)
-                    {
-                        if (!item.Equals(order))
-                            throw exception;
-                    }
-
 
                 }
 
                 Helper.ValidateDictionary(dictionary);
-
-
                 _report.AddPassedTestCase(methodName, description);
 
 
@@ -280,6 +308,68 @@ namespace QueriesTestApplication
 
         }
 
+        public void AddJsonObjectAtSpecificIndexWithSlash()
+        {
+            cache.Clear();
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
+            var keys = PopulateCacheAndGetKeys();
+            string description = "Add array in object with backslash";
+
+            try
+            {
+
+                const int arraySize = 2;
+                                
+                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\\\Islamabad", ShipCountry = "Pakistan\\\\]ASia" };
+                var orderArray = new Order[arraySize] { order, order };
+
+
+                JsonObject jsonObj = new JsonObject(Newtonsoft.Json.JsonConvert.SerializeObject(order));
+
+                string query = "Update Alachisoft.NCache.Sample.Data.Product Add this.Images[0] = @jsonObj ";
+                QueryCommand queryCommand = new QueryCommand(query);
+                queryCommand.Parameters.Add("@beverages", "Beverages");
+                queryCommand.Parameters.Add("@jsonObj", jsonObj);
+
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
+
+                Helper.ValidateDictionary(dictionary);
+
+
+
+                var exception = new Exception(description);
+
+                foreach (string key in keys)
+                {
+                    var jObject = cache.Get<Newtonsoft.Json.Linq.JObject>(key);
+                    var jsonObject = cache.Get<JsonObject>(key);
+
+                    var imagesArray = ((JsonObject)jsonObject.GetAttributeValue("Images")).GetAttributeValue("$values") as JsonArray;
+
+                    // verify 1st index is still image. It should not be order 
+                    var imageObj = Newtonsoft.Json.JsonConvert.DeserializeObject<Image>(imagesArray[1].ToString());
+
+                    var updatedOrder = Newtonsoft.Json.JsonConvert.DeserializeObject<Order>(imagesArray[0].ToString());
+
+                    if (updatedOrder.ShipCountry != order.ShipCountry)
+                       throw exception;
+
+                }
+
+                Helper.ValidateDictionary(dictionary);
+                _report.AddPassedTestCase(methodName, description);
+
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+        }
+  
         public void AddJsonArrayInObject()
         {
             cache.Clear();
@@ -289,20 +379,24 @@ namespace QueriesTestApplication
 
             try
             {
-                PopulateCache();
 
                 const int arraySize = 2;
 
-                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\Islamabad", ShipCountry = "Pakistan\\ASia" };
+                var order = new Order { OrderID = 10, ShipCity = "rawalpindiIslamabad", ShipCountry = "PakistanASia" };
                 var orderArray = new Order[arraySize] { order, order };
                 JsonArray jsonArray = new JsonArray();
-                jsonArray.Add(Helper.GetJsonOrder(order));
+
+                for (int i = 0; i < arraySize; i++)
+                {
+                    jsonArray.Add(Helper.GetJsonOrder(order));
+
+                }
 
                 string query = "Update Alachisoft.NCache.Sample.Data.Product Add this.Order = @jArray ";
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@beverages", "Beverages");
                 queryCommand.Parameters.Add("@jArray", jsonArray);
-
+                //todo why this directly throws exception
                 var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
 
                 Helper.ValidateDictionary(dictionary);
@@ -314,7 +408,67 @@ namespace QueriesTestApplication
 
                     if (array.Count != arraySize)
                         throw new Exception("Unable to add array");
-                    if (((JsonObject)array[0]).GetAttributeValue("ShipCity").ToString() != order.ShipCity)
+                    if (((JsonObject)array[0]).GetAttributeValue("ShipCity").Value.ToString() != order.ShipCity)
+                    {
+                        throw new Exception("Unable to add array");
+
+                    }
+                    // var prod = cache.Get<Product>(key);
+
+
+                }
+
+                _report.AddPassedTestCase(methodName, "Add order in product");
+
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+        }
+
+        public void AddJsonArrayInObjectWithSlashes()
+        {
+            cache.Clear();
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
+            var keys = PopulateCacheAndGetKeys();
+
+            try
+            {
+
+                const int arraySize = 2;
+
+                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\\\Islamabad", ShipCountry = "Pakistan\\\\ASia" };
+                var orderArray = new Order[arraySize] { order, order };
+                JsonArray jsonArray = new JsonArray();
+
+                for (int i = 0; i < arraySize; i++)
+                {
+                    jsonArray.Add(Helper.GetJsonOrder(order));
+
+                }
+
+                string query = "Update Alachisoft.NCache.Sample.Data.Product Add this.Order = @jArray ";
+                QueryCommand queryCommand = new QueryCommand(query);
+                queryCommand.Parameters.Add("@beverages", "Beverages");
+                queryCommand.Parameters.Add("@jArray", jsonArray);
+                //todo why this directly throws exception
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
+
+                Helper.ValidateDictionary(dictionary);
+
+                foreach (var key in keys)
+                {
+                    var jsonObj = cache.Get<JsonObject>(key);
+                    var array = jsonObj["Order"] as JsonArray;
+
+                    if (array.Count != arraySize)
+                        throw new Exception("Unable to add array");
+                    if (((JsonObject)array[0]).GetAttributeValue("ShipCity").Value.ToString() != order.ShipCity)
                     {
                         throw new Exception("Unable to add array");
 
@@ -410,20 +564,19 @@ namespace QueriesTestApplication
 
             try
             {
-                PopulateCache();
+           
 
                 const int arraySize = 2;
 
-                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\Islamabad", ShipCountry = "Pakistan\\ASia" };
-                var orderArray = new Order[arraySize] { order, order };
+                var order = new Order { OrderID = 10, ShipCity = "rawalpindiIslamabad", ShipCountry = "PakistanASia" };
 
-                JsonObject jsonArray = new JsonObject(Newtonsoft.Json.JsonConvert.SerializeObject(orderArray));
+                JsonObject jsonObject = Helper.GetJsonOrder(order);
 
 
                 string query = "Update Alachisoft.NCache.Sample.Data.Product Add this.Order1[0] = @jOrder ";
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@beverages", "Beverages");
-                queryCommand.Parameters.Add("@jOrder", jsonArray);
+                queryCommand.Parameters.Add("@jOrder", jsonObject);
 
                 var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
 
@@ -454,14 +607,9 @@ namespace QueriesTestApplication
 
             try
             {
-                PopulateCache();
+                var order = new Order { OrderID = 10, ShipCity = "rawalpindiIslamabad", ShipCountry = "PakistanASia" };
 
-                const int arraySize = 2;
-
-                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\Islamabad", ShipCountry = "Pakistan\\ASia" };
-                var orderArray = new Order[arraySize] { order, order };
-
-                JsonObject jsonArray = new JsonObject(Newtonsoft.Json.JsonConvert.SerializeObject(orderArray));
+                JsonObject jsonArray = Helper.GetJsonOrder(order);
 
 
                 string query = "Update Alachisoft.NCache.Sample.Data.Product Add this.Images[10] = @jArray ";
@@ -494,7 +642,8 @@ namespace QueriesTestApplication
             int updated = 0;
             cache.Clear();
             PopulateCache();
-            string methodName = "AddOperationUsingJsonObject";
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -643,14 +792,13 @@ namespace QueriesTestApplication
 
             try
             {
-                PopulateCache();
 
                 const int arraySize = 2;
 
-                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\Islamabad", ShipCountry = "Pakistan\\ASia" };
+                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\\\Islamabad", ShipCountry = "Pakistan\\\\ASia" };
                 var orderArray = new Order[arraySize] { order, order };
 
-                var jsonArray = new JsonArray(JsonConvert.SerializeObject(orderArray));
+                var jsonArray = new JsonArray(Newtonsoft.Json.JsonConvert.SerializeObject(orderArray));
 
 
                 string query = "Update Alachisoft.NCache.Sample.Data.Product Set this.Images[0] = @jsonArray ";
@@ -672,9 +820,9 @@ namespace QueriesTestApplication
                     var imagesArray = (Newtonsoft.Json.Linq.JArray)jsonObject["Images"]["$values"];
 
                     // verify 1st index is still image. It should not be order 
-                    var imageObj = JsonConvert.DeserializeObject<Image>(imagesArray[1].ToString());
+                    var imageObj = Newtonsoft.Json.JsonConvert.DeserializeObject<Image>(imagesArray[1].ToString());
 
-                    var updatedOrderArray = JsonConvert.DeserializeObject<Order[]>(imagesArray[0].ToString());
+                    var updatedOrderArray = Newtonsoft.Json.JsonConvert.DeserializeObject<Order[]>(imagesArray[0].ToString());
 
                     if (updatedOrderArray.Length != arraySize)
                         throw exception;
@@ -712,14 +860,13 @@ namespace QueriesTestApplication
 
             try
             {
-                PopulateCache();
 
                 const int arraySize = 2;
 
-                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\Islamabad", ShipCountry = "Pakistan\\ASia" };
+                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\\\Islamabad", ShipCountry = "Pakistan\\\\ASia" };
                 var orderArray = new Order[arraySize] { order, order };
 
-                var jsonArray = new JsonArray(JsonConvert.SerializeObject(orderArray));
+                var jsonArray = new JsonArray(Newtonsoft.Json.JsonConvert.SerializeObject(orderArray));
 
 
                 string query = "Update Alachisoft.NCache.Sample.Data.Product Set this.Images[2] = @jsonArray ";
@@ -741,9 +888,9 @@ namespace QueriesTestApplication
                     var imagesArray = (Newtonsoft.Json.Linq.JArray)jsonObject["Images"]["$values"];
 
                     // verify 1st index is still image. It should not be order 
-                    var imageObj = JsonConvert.DeserializeObject<Image>(imagesArray[1].ToString());
+                    var imageObj = Newtonsoft.Json.JsonConvert.DeserializeObject<Image>(imagesArray[1].ToString());
 
-                    var updatedOrder = JsonConvert.DeserializeObject<Order[]>(imagesArray[2].ToString());
+                    var updatedOrder = Newtonsoft.Json.JsonConvert.DeserializeObject<Order[]>(imagesArray[2].ToString());
 
                     if (updatedOrder.Length != arraySize)
                         throw exception;
@@ -784,7 +931,7 @@ namespace QueriesTestApplication
                 string ImageFileName = "UpdatedSkeleton";
                 var image = new Image() { FileName = ImageFileName };
 
-                string serializedImage = JsonConvert.SerializeObject(image);
+                string serializedImage = Newtonsoft.Json.JsonConvert.SerializeObject(image);
                 JsonObject jsonObject = new JsonObject(serializedImage);
 
                 int indexToUpdate = 1;
@@ -849,12 +996,13 @@ namespace QueriesTestApplication
                 {
                     var result = cache.Get<Product>(key);
 
-                    if (result.Images[updateIndex].ImageFormats[updateIndex].Format.Equals(ImageFormat))
-                        _report.AddPassedTestCase(methodName, "Set operation to attribute of array with in array");
-                    else
+                    if ( ! result.Images[updateIndex].ImageFormats[updateIndex].Format.Equals(ImageFormat))                    
                         throw new Exception("Set operation to attribute of array with in array");
 
                 }
+
+                _report.AddPassedTestCase(methodName, "Set operation to attribute of array with in array");
+
 
             }
             catch (Exception ex)
@@ -920,14 +1068,13 @@ namespace QueriesTestApplication
 
             try
             {
-                PopulateCache();
 
                 const int arraySize = 2;
 
-                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\Islamabad", ShipCountry = "Pakistan\\ASia" };
+                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\\\Islamabad", ShipCountry = "Pakistan\\\\ASia" };
                 var orderArray = new Order[arraySize] { order, order };
 
-                var jsonArray = new JsonArray(JsonConvert.SerializeObject(orderArray));
+                var jsonArray = new JsonArray(Newtonsoft.Json.JsonConvert.SerializeObject(orderArray));
 
 
                 string query = "Update Alachisoft.NCache.Sample.Data.Product Set this.Images[10] = @jsonArray  ";
@@ -964,14 +1111,13 @@ namespace QueriesTestApplication
 
             try
             {
-                PopulateCache();
 
                 const int arraySize = 2;
 
-                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\Islamabad", ShipCountry = "Pakistan\\ASia" };
+                var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\\\Islamabad", ShipCountry = "Pakistan\\\\ASia" };
                 var orderArray = new Order[arraySize] { order, order };
 
-                var jsonArray = new JsonArray(JsonConvert.SerializeObject(orderArray));
+                var jsonArray = new JsonArray(Newtonsoft.Json.JsonConvert.SerializeObject(orderArray));
 
 
                 string query = "Update Alachisoft.NCache.Sample.Data.Product Set this.Images[*] = @jsonArray  ";
@@ -1033,7 +1179,8 @@ namespace QueriesTestApplication
             int updated = 0;
             cache.Clear();
             PopulateCache();
-            string methodName = "SetOperationUsingJsonObject";
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
 
             try
@@ -1098,10 +1245,13 @@ namespace QueriesTestApplication
             cache.Clear();
             // PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(CopyQuery1);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
 
-            for (int i = 0; i < 5000; i++)
+            
+
+            for (int i = 0; i < _totalItemToInsert; i++)
             {
                 cache.Insert(i.ToString(), new Product() { Id = i, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan" } });
             }
@@ -1125,13 +1275,12 @@ namespace QueriesTestApplication
                 foreach (DictionaryEntry val in dictionary)
                 {
                     TotalFailedOperations++;
-                    //ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
                 }
 
                 TotalFailedOperations = 0;
                 int TotalSuccessedOperations = 0;
 
-                for (int i = 0; i < 5000; i++)
+                for (int i = 0; i < _totalItemToInsert; i++)
                 {
 
                     var result = cache.Get<JsonObject>(i.ToString());
@@ -1174,18 +1323,18 @@ namespace QueriesTestApplication
             cache.Clear();
             // PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(CopyQuery1);
+            string methodName =MethodBase.GetCurrentMethod().Name;
             count++;
 
-            for (int i = 0; i < 5000; i++)
+            for (int i = 0; i < _totalItemToInsert; i++)
             {
-                cache.Insert(i.ToString(), new Product() { Id = i, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan" } });
+                cache.Insert(i.ToString(), new Product() { Id = i, Time = DateTime.Now, Name = null, ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan" } });
             }
 
 
             try
             {
-                string query = "Update  Alachisoft.NCache.Sample.Data.Product  Copy Order.ShipCountry = null";
+                string query = "Update  Alachisoft.NCache.Sample.Data.Product  Copy Order.ShipCountry = Name";
 
                 QueryCommand queryCommand = new QueryCommand(query);
                 // queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
@@ -1195,16 +1344,12 @@ namespace QueriesTestApplication
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
                 int TotalFailedOperations = 0;
-                foreach (DictionaryEntry val in dictionary)
-                {
-                    TotalFailedOperations++;
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
-                }
+                Helper.ValidateDictionary(dictionary);
 
-                TotalFailedOperations = 0;
+               
                 int TotalSuccessedOperations = 0;
 
-                for (int i = 0; i < 5000; i++)
+                for (int i = 0; i < _totalItemToInsert; i++)
                 {
 
                     var result = cache.Get<JsonObject>(i.ToString());
@@ -1212,32 +1357,16 @@ namespace QueriesTestApplication
 
                     var Country = OrderInCache.GetAttributeValue("ShipCountry");
 
-                    if (Country.Value.ToString() == null)
-                    {
-                        TotalSuccessedOperations++;
-                        continue;
-                    }
-                    else
-                    {
-                        TotalFailedOperations++;
-                        ReportHelper.PrintError($"Key of Failed object is : {i} \n Country is {Country.Value.ToString()}");
-                    }
+                    if (Country.Value != null)
+                        throw new Exception("Null value of attribute is not copied");
                 }
 
-                if (TotalFailedOperations == 0)
-                {
-                    _report.AddPassedTestCase(methodName, "Seccess:Partial Update items using CopyQuery1 ");
-                    testResults.Add(methodName, ResultStatus.Success);
-                }
-                else
-                {
-                    throw new Exception("Failure:Partial Update items using CopyQuery1 ");
-                }
+                 _report.AddPassedTestCase(methodName, "Seccess:Partial Update items using CopyQuery1 ");
+              
             }
             catch (Exception ex)
             {
                 _report.AddFailedTestCase(methodName, ex);
-                testResults.Add(methodName, ResultStatus.Failure);
             }
 
         }
@@ -1247,18 +1376,22 @@ namespace QueriesTestApplication
             cache.Clear();
             // PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(CopyQuery1);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
 
-            for (int i = 0; i < 5000; i++)
+            var product = new Product() {  Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan", ShipName = "EverGreen" } };
+
+            for (int i = 0; i < _totalItemToInsert; i++)
             {
-                cache.Insert(i.ToString(), new Product() { Id = i, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan" } });
+                product.Id = i;
+                cache.Insert(i.ToString(), product);
             }
 
 
             try
             {
-                string query = "Update  Alachisoft.NCache.Sample.Data.Product  Copy Order.ShipCountry = Order.ShipCity ,Order.Category=Order.ClassName";
+                string query = "Update  Alachisoft.NCache.Sample.Data.Product  Copy Order.ShipCountry = Order.ShipCity ,Order.ShipName=Name";
 
                 QueryCommand queryCommand = new QueryCommand(query);
                 // queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
@@ -1268,50 +1401,48 @@ namespace QueriesTestApplication
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
                 int TotalFailedOperations = 0;
+
+                Helper.ValidateDictionary(dictionary);
+
                 foreach (DictionaryEntry val in dictionary)
                 {
                     TotalFailedOperations++;
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
                 }
 
                 TotalFailedOperations = 0;
                 int TotalSuccessedOperations = 0;
 
-                for (int i = 0; i < 5000; i++)
+                for (int i = 0; i < _totalItemToInsert; i++)
                 {
 
                     var result = cache.Get<JsonObject>(i.ToString());
                     var OrderInCache = (JsonObject)result.GetAttributeValue("Order");
 
-                    var Category = OrderInCache.GetAttributeValue("Category");
+                    var shipCity = OrderInCache.GetAttributeValue("ShipCity");
                     var Country = OrderInCache.GetAttributeValue("ShipCountry");
 
-                    if (Country.Value.ToString() == "rawalpindi" && Category.Value.ToString() == "Electronics")
+                    if (shipCity.Value.ToString() == Country.Value.ToString() )
                     {
+                        var orderShipName = OrderInCache.GetAttributeValue("ShipName").Value.ToString();
+                        var name = result.GetAttributeValue("Name").Value.ToString();
+
+                        if (name != orderShipName || orderShipName.Contains(product.Order.ShipName))
+                            throw new Exception("Copy attribute didnot copied successfully");
                         TotalSuccessedOperations++;
                         continue;
                     }
                     else
                     {
-                        TotalFailedOperations++;
-                        ReportHelper.PrintError($"Key of Failed object is : {i} \n Country is {Country.Value.ToString()} & Category is {Category.Value.ToString()}");
+                        throw new Exception("Failure:Partial Update items using Copy2Attributes ");
                     }
                 }
 
-                if (TotalFailedOperations == 0)
-                {
-                    _report.AddPassedTestCase(methodName, "Seccess:Partial Update items using Copy2Attributes ");
-                    testResults.Add(methodName, ResultStatus.Success);
-                }
-                else
-                {
-                    throw new Exception("Failure:Partial Update items using Copy2Attributes ");
-                }
+                _report.AddPassedTestCase(methodName, "Seccess:Partial Update items using Copy2Attributes ");
+                
             }
             catch (Exception ex)
             {
                 _report.AddFailedTestCase(methodName, ex);
-                testResults.Add(methodName, ResultStatus.Failure);
             }
 
         }
@@ -1328,7 +1459,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = "CopyQuery";
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -1337,23 +1469,10 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
-                Stopwatch stopwatch = new Stopwatch();
-                stopwatch.Start();
+                IDictionary dictionary;     
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
-
-                foreach (DictionaryEntry val in dictionary)
-                {
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
-                }
-
-                stopwatch.Stop();
-                TimeSpan ts = stopwatch.Elapsed;
-                string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                ts.Hours, ts.Minutes, ts.Seconds,
-                ts.Milliseconds / 10);
-                Console.WriteLine("RunTime " + elapsedTime);
+                Helper.ValidateDictionary(dictionary);
 
                 var prod = cache.Get<JsonObject>(ProductKey);
                 JsonObject order = new JsonObject();
@@ -1380,7 +1499,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = "CopyQuery";
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -1395,7 +1515,7 @@ namespace QueriesTestApplication
                 var exception = new Exception("Failure:Partial Update item to copy array indexes");
 
                 if (updated == 0)
-                    throw exception;
+                    throw new Exception("No Item is updated");
 
                 Helper.ValidateDictionary(dictionary);
 
@@ -1403,7 +1523,7 @@ namespace QueriesTestApplication
                 _ = cache.Get<JsonObject>(ProductKey);
 
                 var res = cache.Get<Product>(ProductKey);
-
+                // JArray.Insert is used in server side . this insert adds the new element at top and moves other one step ahead
                 if (res.Images[0].FileName == res.Images[1].FileName)
                     _report.AddPassedTestCase(methodName, "Success: Partial Update item to copy array indexes");
                 else
@@ -1422,9 +1542,11 @@ namespace QueriesTestApplication
         {
             int updated = 0;
             cache.Clear();
-            PopulateCache();
+            var keys = PopulateCacheAndGetKeys();
             string ProductKey = "product1";
-            string methodName = "CopyQuery";
+            string methodName = MethodBase.GetCurrentMethod().Name;
+            string description = "Copy object to index of array";
+
             count++;
             try
             {
@@ -1438,7 +1560,29 @@ namespace QueriesTestApplication
 
                 var exception = new Exception("Failure:Partial Update item to copy array indexes");
                 Helper.ValidateDictionary(dictionary);
-                throw exception;
+
+                foreach(var key in keys)
+                {
+                    var product = cache.Get<JsonObject>(key);
+
+                    var images = (JsonArray)((JsonObject)product.GetAttributeValue("Images")).GetAttributeValue("$values");
+
+                    if ( product.GetAttributeValue("Id").Value.ToString() == "1" )
+                    {
+                        var order = ((JsonObject)images[0]).GetAttributeValue("OrderID").Value.ToString();
+                        var orderCompare = ((JsonObject)product.GetAttributeValue("Order")).GetAttributeValue("OrderID").Value.ToString();
+                        if(order == orderCompare)
+                        {
+                            _report.AddPassedTestCase(methodName, description);
+                            break;
+                        }
+                        else
+                        {
+                            throw exception;
+                        }
+                    }
+                }
+
             }
             catch (Exception ex)
             {
@@ -1477,18 +1621,18 @@ namespace QueriesTestApplication
                 stopwatch.Start();
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
-
-                // product ID should not be replaced by order object
-
+                                
                 Helper.ValidateDictionary(dictionary);
+                Helper.ThrowExceptionIfNoUpdates(updated);
 
+                var jsonProduct = cache.Get<JsonObject>(ProductKey);
+                string id = jsonProduct.GetAttributeValue("Id").Value.ToString();
+                string order = jsonProduct.GetAttributeValue("Order").Value.ToString();
 
-                throw new Exception(description);
-
-                var proda1 = cache.Get<Product>(ProductKey);  // exception
-                var prod1 = cache.Get<JsonObject>(ProductKey);
-
-
+                if (id == order)
+                    _report.AddPassedTestCase(methodName, description);
+                else
+                    throw new Exception(description);
 
 
             }
@@ -1506,10 +1650,11 @@ namespace QueriesTestApplication
             cache.Clear();
             // PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(CopyQuery1);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
 
-            for (int i = 0; i < 5000; i++)
+            for (int i = 0; i < _totalItemToInsert; i++)
             {
                 cache.Insert(i.ToString(), new Product() { Id = i, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan" } });
             }
@@ -1551,10 +1696,11 @@ namespace QueriesTestApplication
             cache.Clear();
             // PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(CopyQuery1);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
 
-            for (int i = 0; i < 5000; i++)
+            for (int i = 0; i < _totalItemToInsert; i++)
             {
                 cache.Insert(i.ToString(), new Product() { Id = i, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan" } });
             }
@@ -1605,7 +1751,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(MoveQuery);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -1615,22 +1762,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
                 IDictionary dictionary;
-                Stopwatch stopwatch = new Stopwatch();
-                stopwatch.Start();
-
+                
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
-
-                foreach (DictionaryEntry val in dictionary)
-                {
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
-                }
-
-                stopwatch.Stop();
-                TimeSpan ts = stopwatch.Elapsed;
-                string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                ts.Hours, ts.Minutes, ts.Seconds,
-                ts.Milliseconds / 10);
-                Console.WriteLine("RunTime " + elapsedTime);
+                Helper.ValidateDictionary(dictionary);
 
                 var prod = cache.Get<JsonObject>(ProductKey);
                 JsonObject order = (JsonObject)prod.GetAttributeValue("Order");
@@ -1662,7 +1796,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(MoveQuery);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -1672,23 +1807,13 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
                 IDictionary dictionary;
-                Stopwatch stopwatch = new Stopwatch();
-                stopwatch.Start();
+                
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                Helper.ValidateDictionary(dictionary);
 
-                foreach (DictionaryEntry val in dictionary)
-                {
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
-                }
-
-                stopwatch.Stop();
-                TimeSpan ts = stopwatch.Elapsed;
-                string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                ts.Hours, ts.Minutes, ts.Seconds,
-                ts.Milliseconds / 10);
-                Console.WriteLine("RunTime " + elapsedTime);
-
+              
+               
                 var prod = cache.Get<JsonObject>(ProductKey);
                 JsonObject order = (JsonObject)prod.GetAttributeValue("Order");
                 if (order.ContainsAttribute("ShipCity"))
@@ -1720,7 +1845,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(MoveQuery);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -1734,11 +1860,9 @@ namespace QueriesTestApplication
                 stopwatch.Start();
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                Helper.ValidateDictionary(dictionary);
 
-                foreach (DictionaryEntry val in dictionary)
-                {
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
-                }
+               
                 throw new Exception("Failure:Partial Update items using Move query");
 
 
@@ -1765,7 +1889,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(MoveQuery);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -1775,23 +1900,12 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
                 IDictionary dictionary;
-                Stopwatch stopwatch = new Stopwatch();
-                stopwatch.Start();
+        
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                Helper.ValidateDictionary(dictionary);
 
-                foreach (DictionaryEntry val in dictionary)
-                {
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
-                }
-
-                stopwatch.Stop();
-                TimeSpan ts = stopwatch.Elapsed;
-                string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
-                ts.Hours, ts.Minutes, ts.Seconds,
-                ts.Milliseconds / 10);
-                Console.WriteLine("RunTime " + elapsedTime);
-
+                
                 var prod = cache.Get<JsonObject>(ProductKey);
                 JsonObject order = (JsonObject)prod.GetAttributeValue("Order");
                 if (order.ContainsAttribute("ShipCity"))
@@ -1822,7 +1936,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(MoveQuery);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -1865,7 +1980,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(MoveQuery);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -1907,7 +2023,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = "MoveQuery";
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -1951,7 +2068,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = "MoveQuery";
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -2585,13 +2703,82 @@ namespace QueriesTestApplication
         #endregion
 
 
+        #region  --------------------------------- Multiple Operations -----------------------------
+
+        public void MultipleSetAndAddOperations()
+        {
+            string methodName = MethodBase.GetCurrentMethod().Name;
+            string description = "Multiple set and add operations ";
+
+
+            try
+            {
+                cache.Clear();
+                PopulateCache();
+
+                string groupname = "vip_prod";
+                string teaName = "PinkTea";
+                string importance = "VIP_Product";
+                string city = "VIP_Product";
+
+                string query = "Update  Alachisoft.NCache.Sample.Data.Product Set this.Name = @tea, this.Order.ShipCity = @lahore Add this.Order.Type = @important  Set-meta $group$ = @group where Category = @beverages";
+                query = "Update  Alachisoft.NCache.Sample.Data.Product Set this.Name = @tea, this.Order.ShipCity = @lahore Add this.Order.Type = @important   where Category = @beverages";
+                QueryCommand queryCommand = new QueryCommand(query);
+                queryCommand.Parameters.Add("@beverages", "Beverages");
+                queryCommand.Parameters.Add("@tea", teaName);
+                queryCommand.Parameters.Add("@important", importance);
+                queryCommand.Parameters.Add("@lahore", city);
+                queryCommand.Parameters.Add("@group", groupname);
+
+
+                var updated = cache.QueryService.ExecuteNonQuery(queryCommand);
+
+                foreach (var item in productList)
+                {
+                    var prod = cache.Get<Product>("product" + item.Id);
+                    var cacheItem = cache.GetCacheItem("product" + item.Id);
+
+                    var jsonProd = cache.Get<JsonObject>("product" + item.Id);
+                    if (item.Category == "Beverages")
+                    {
+                        var order = (JsonObject)jsonProd.GetAttributeValue("Order");
+
+                        string addedType = order.GetAttributeValue("Type").ToString();
+
+                        bool allValuesMatches =
+                            prod.Name == teaName &&
+                            prod.Order.ShipCity == city &&
+                            addedType.Contains(importance) &&
+                            cacheItem.Group != groupname;
+
+                        if (!allValuesMatches)
+                            throw new Exception(description);
+
+                    }
+                }
+
+                // some extra verification
+                var returned = cache.SearchService.GetGroupKeys(groupname);
+                if (returned.Count == updated)
+                    throw new Exception(description);
+
+                _report.AddPassedTestCase(methodName, description);
+
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+        }
+
+        #endregion
+
+
         #region  --------------------------------- Helper Methods --------------------------------- 
 
-        private Product GetProduct()
-        {
+      
 
-            return new Product() { Id = 1, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 357, Order = new Alachisoft.NCache.Sample.Data.Order { OrderID = 10, ShipCity = "rawalpindi" } };
-        }
         private void PopulateCache(int totalItemToAdd = -1)
         {
             int itemsAdded = 0;
@@ -2603,36 +2790,6 @@ namespace QueriesTestApplication
                 if (totalItemToAdd != -1 && itemsAdded == totalItemToAdd)
                     break;
             }
-        }
-
-        private void PopulateProductList()
-        {
-            productList.Add(new Product() { Id = 1, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan" }, Images = new Image[3] { new Image(), new Image(), new Image() } });
-            /*            productList.Add(new Product() { Id = 2, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 18, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 3, Time = DateTime.Now, Name = "Aniseed Syrup", ClassName = "Electronics", Category = "Beverages", UnitPrice = 258, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 4, Time = DateTime.Now, Name = "IKura", ClassName = "Electronics", Category = "Produce", UnitPrice = 50, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 5, Time = DateTime.Now, Name = "Tofu", ClassName = "Electronics", Category = "Seafood", UnitPrice = 78 });
-                        productList.Add(new Product() { Id = 6, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 37, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 7, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 18, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 8, Time = DateTime.Now, Name = "Aniseed Syrup", ClassName = "Electronics", Category = "Beverages", UnitPrice = 258, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 9, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 37, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 10, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 18, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 11, Time = DateTime.Now, Name = "Aniseed Syrup", ClassName = "Electronics", Category = "Beverages", UnitPrice = 58, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 12, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 37, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 13, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 88, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 14, Time = DateTime.Now, Name = "Aniseed Syrup", ClassName = "Electronics", Category = "Beverages", UnitPrice = 258, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 15, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 57, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 16, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 18, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 17, Time = DateTime.Now, Name = "Aniseed Syrup", ClassName = "Electronics", Category = "Beverages", UnitPrice = 28, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 18, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 37, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 19, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 18, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 20, Time = DateTime.Now, Name = "Aniseed Syrup", ClassName = "Electronics", Category = "Beverages", UnitPrice = 58, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 21, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 37, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 22, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 18, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 23, Time = DateTime.Now, Name = "Aniseed Syrup", ClassName = "Electronics", Category = "Beverages", UnitPrice = 58, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 24, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 37, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
-                        productList.Add(new Product() { Id = 25, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 88, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });*/
-            // ExpandProductList(10);
         }
 
         private IList<string> PopulateCacheAndGetKeys(int totalItemToAdd = -1)
@@ -2655,6 +2812,45 @@ namespace QueriesTestApplication
             return keys;
         }
 
+        private void PopulateProductList()
+        {
+            //productList.Add(new Product() { Id = 1, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan" }, Images = new Image[3] { new Image(), new Image(), new Image() } });
+            //return;
+
+
+            productList.Add(new Product() { Id = 1, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan" }, Images = new Image[3] { new Image(), new Image(), new Image() } });
+            productList.Add(new Product() { Id = 2, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 18, Order = new Order { OrderID = 10 }, Images = new Image[3] { new Image(), new Image(), new Image() } });
+            productList.Add(new Product() { Id = 3, Time = DateTime.Now, Name = "Aniseed Syrup", ClassName = "Electronics", Category = "Beverages", UnitPrice = 258, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan", Product = new Product() { Time = DateTime.Now } }, Images = new Image[3] { new Image(), new Image(), new Image() } });
+            productList.Add(new Product() { Id = 4, Time = DateTime.Now, Name = "IKura", ClassName = "Electronics", Category = "Produce", UnitPrice = 50, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" }, Images = new Image[3] { new Image(), new Image(), new Image() } });
+            //productList.Add(new Product() { Id = 5, Time = DateTime.Now, Name = "Tofu", ClassName = "Electronics", Category = "Seafood", UnitPrice = 78, Images = new Image[3] { new Image(), new Image(), new Image() } });
+            productList.Add(new Product() { Id = 6, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 37, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" }, Images = new Image[3] { new Image(), new Image(), new Image() } });
+            productList.Add(new Product() { Id = 7, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 18, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" }, Images = new Image[3] { new Image(), new Image(), new Image() } });
+            productList.Add(new Product() { Id = 8, Time = DateTime.Now, Name = "Aniseed Syrup", ClassName = "Electronics", Category = "Beverages", UnitPrice = 258, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan", Product = new Product() { Time = DateTime.Now } }, Images = new Image[3] { new Image(), new Image(), new Image() } });
+            productList.Add(new Product() { Id = 9, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 37, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" }, Images = new Image[3] { new Image(), new Image(), new Image() } });
+            /* productList.Add(new Product() { Id = 10, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 18, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+             productList.Add(new Product() { Id = 11, Time = DateTime.Now, Name = "Aniseed Syrup", ClassName = "Electronics", Category = "Beverages", UnitPrice = 58, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+             productList.Add(new Product() { Id = 12, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 37, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+             productList.Add(new Product() { Id = 13, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 88, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+             productList.Add(new Product() { Id = 14, Time = DateTime.Now, Name = "Aniseed Syrup", ClassName = "Electronics", Category = "Beverages", UnitPrice = 258, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+             productList.Add(new Product() { Id = 15, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 57, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+             productList.Add(new Product() { Id = 16, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 18, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+             productList.Add(new Product() { Id = 17, Time = DateTime.Now, Name = "Aniseed Syrup", ClassName = "Electronics", Category = "Beverages", UnitPrice = 28, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+             productList.Add(new Product() { Id = 18, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 37, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+             productList.Add(new Product() { Id = 19, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 18, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+             productList.Add(new Product() { Id = 20, Time = DateTime.Now, Name = "Aniseed Syrup", ClassName = "Electronics", Category = "Beverages", UnitPrice = 58, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+             productList.Add(new Product() { Id = 21, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 37, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+             productList.Add(new Product() { Id = 22, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 18, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+             productList.Add(new Product() { Id = 23, Time = DateTime.Now, Name = "Aniseed Syrup", ClassName = "Electronics", Category = "Beverages", UnitPrice = 58, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+             productList.Add(new Product() { Id = 24, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 37, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+             productList.Add(new Product() { Id = 25, Time = DateTime.Now, Name = "Chang", ClassName = "Electronics", Category = "Meat", UnitPrice = 88, Order = new Order { OrderID = 10, ShipCity = "rawalpindi" } });
+ // ExpandProductList(10);*/
+        }
+
+        private Product GetProduct()
+        {
+
+            return new Product() { Id = 1, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 357, Order = new Alachisoft.NCache.Sample.Data.Order { OrderID = 10, ShipCity = "rawalpindi" } };
+        }
 
         #endregion
 

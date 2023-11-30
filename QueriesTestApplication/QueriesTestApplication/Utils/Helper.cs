@@ -20,6 +20,12 @@ namespace QueriesTestApplication.Utils
             }
         }
 
+        public static void ThrowExceptionIfNoUpdates(int totalUpdatesdItems)
+        {
+            if(totalUpdatesdItems == 0)
+                throw new Exception("No items is updated");
+        }
+
         public static Product GetProduct()
         {
             return new Product() { Id = 1, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan" }, Images = new Image[1] { new Image() } };
@@ -36,7 +42,7 @@ namespace QueriesTestApplication.Utils
             return jsonorder;
         }
 
-        
+
         #region -------------------------- Exception Validations -------------------------- 
 
         public static bool IsTargetNotFoundException(Exception ex)
@@ -54,7 +60,7 @@ namespace QueriesTestApplication.Utils
             return ex.Message.Contains("Index was outside the bounds of the array");
         }
 
-        public static bool IsTestOperationException(Exception ex )
+        public static bool IsTestOperationException(Exception ex)
         {
             return ex.Message.Contains("Specified value not equals to test value");
         }

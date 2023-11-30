@@ -2261,7 +2261,7 @@ namespace QueriesTestApplication
                 var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\Islamabad", ShipCountry = "Pakistan\\ASia" };
                 var orderArray = new Order[arraySize] { order, order };
 
-                var jArray = JArray.Parse(JsonConvert.SerializeObject(orderArray));
+                var jArray = JObject.Parse(JsonConvert.SerializeObject(order));
 
 
                 string query = "Update Alachisoft.NCache.Sample.Data.Product Set this.Images[0] = @jArray ";

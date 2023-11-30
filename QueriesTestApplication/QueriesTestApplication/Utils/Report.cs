@@ -40,10 +40,12 @@ namespace QueriesTestApplication.Utils
             foreach (var testCase in _failedTestCases)
             {
                 string msg = testCase.Value.ToString();
+
                 if (RemoveStackTrace)
                     RemoveStackTraceFromMessage(ref msg);
 
-                ReportHelper.PrintError(string.Format(ResourceMessages.FailedTestCaseMessage, serialNumber++,testCase.Key, msg));
+                ReportHelper.PrintError(string.Format(ResourceMessages.FailedTestCaseMessage, serialNumber++,testCase.Key, ""));
+                Console.Write(msg);
             }
         }
           

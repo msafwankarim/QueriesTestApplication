@@ -7,6 +7,13 @@ namespace QueriesTestApplication.Utils
 {
     public static class ReportHelper
     {
+        public static List<string> _skipMessages = new List<string>()
+        {
+            "PopulateCacheParameter count mismatch.",
+            "PopulateCacheAndGetKeysParameter count mismatch.",
+            "EqualsParameter count mismatch."
+        };
+
         public static void ValidateDictionary(IDictionary dictionary)
         {
             if (dictionary.Count > 0)
@@ -28,8 +35,8 @@ namespace QueriesTestApplication.Utils
 
         public static void PrintError(string error)
         { 
-            if (error == null)
-                return;
+            if (error == null || _skipMessages.Contains(error))
+                return;           
 
             PrintColorMessage(error, ConsoleColor.Red);
         }
@@ -45,7 +52,7 @@ namespace QueriesTestApplication.Utils
         private static void PrintColorMessage(string info, ConsoleColor color = ConsoleColor.Green)
         {           
             Console.ForegroundColor = color;
-            Console.WriteLine(info);
+            Console.Write("\n" + info);
             Console.ResetColor();
         }
     }

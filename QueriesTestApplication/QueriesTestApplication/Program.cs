@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Reflection;
 using QueriesTestApplication.Utils;
+using QueriesTestApplication.VerifyEscapeSequences;
 
 namespace QueriesTestApplication
 {
@@ -19,28 +20,19 @@ namespace QueriesTestApplication
 
                 Common.CacheName = "democache";
 
-                JsonValue val = (JsonValue)Common.CacheName;
+                //TempTests();
 
-                object jVal = val.ToString();
-
-                string jsonString = "[{\"name\":\"phone\",\"model\":\"p30PRO\"}]";
-                JsonArray arr = new JsonArray(jsonString);
-
-
-                var str = JsonConvert.SerializeObject(jVal);
-                str = JsonConvert.SerializeObject(arr);
-
-
+               // EscapeSequencesVerifier();
+                
                 RunUpdateQueriesTestsForJsonObject();
-
-
-
+                // RunUpdateQueriesTests();
                 //  RunInsertQueriesTests();
                 // RunMetaVerificationTests();
                 // RunInlineQueryTests();
                 // RunInsertQueriesTests();
                 // RunInlineQueryTestForUpdate();
                 // RunUpdateQueriesTests();
+                MetaVerificationInUpdateQuery();
                 // InOperatorTests();
 
             }
@@ -51,7 +43,9 @@ namespace QueriesTestApplication
 
 
         }
-    
+
+       
+
         private static void RunOnAllTopologies()
         {
             string[] CacheNames = new string[4] { "democache1", "Partition", "ReplicatedCache", "MirrorCache" };
@@ -109,7 +103,10 @@ namespace QueriesTestApplication
             MetaVerificationTests metaTest = new MetaVerificationTests();
             Common.PrintClassName("MetaVerificationTests");
 
-            MethodInfo[] methodInfos = typeof(MetaVerificationTests).GetMethods(BindingFlags.Public | BindingFlags.Instance);
+            MethodInfo[] methodInfos = typeof(MetaVerificationTests).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+           
+
             foreach (var mi in methodInfos)
             {
                 try
@@ -139,7 +136,10 @@ namespace QueriesTestApplication
             MetaVerificationTestForJsonObj metaTest = new MetaVerificationTestForJsonObj();
             Common.PrintClassName(nameof(MetaVerificationTestForJsonObj));
 
-            MethodInfo[] methodInfos = typeof(MetaVerificationTestForJsonObj).GetMethods(BindingFlags.Public | BindingFlags.Instance);
+            MethodInfo[] methodInfos = typeof(MetaVerificationTestForJsonObj).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            metaTest.GroupMetadataInJsonObject();
+
             foreach (var mi in methodInfos)
             {
                 try
@@ -162,6 +162,31 @@ namespace QueriesTestApplication
             metaTest.Report.PrintReport();  
 
             Console.WriteLine("Total methods called " + metaTest.TestResults.Count);
+            Console.ReadLine();
+        }
+
+        private static void MetaVerificationInUpdateQuery()
+        {
+            object[] parameters = null;
+            MetaVerificationInUpdateQuery metaTest = new MetaVerificationInUpdateQuery();
+            Common.PrintClassName(nameof(MetaVerificationInUpdateQuery));
+
+            MethodInfo[] methodInfos = typeof(MetaVerificationInUpdateQuery).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+         
+            foreach (var mi in methodInfos)
+            {
+                try
+                {
+                    mi.Invoke(metaTest, parameters);
+                }
+                catch (Exception)
+                {
+
+
+                }
+            }           
+
+            metaTest.Report.PrintReport();
             Console.ReadLine();
         }
 
@@ -210,10 +235,10 @@ namespace QueriesTestApplication
            
             MethodInfo[] methodInfos = typeof(UpdateQueriesTest).GetMethods(BindingFlags.NonPublic |BindingFlags.Public | BindingFlags.Instance);
 
-            
-          //  updateQueriesTest.SetArrayAtOutOBoundIndex();
+
+              updateQueriesTest.SetArrayAtZerothIndex();
             //updateQueriesTest.AddArrayAtSpecificIndex();
-           // updateQueriesTest.SetOperationUsingJObject0();
+            // updateQueriesTest.SetOperationUsingJObject0();
 
             foreach (var mi in methodInfos)
             {
@@ -253,7 +278,7 @@ namespace QueriesTestApplication
 
             MethodInfo[] methodInfos = typeof(UpdateQueriesTestForJsonObject).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            updateQueriesTest.AddAttribute();
+           // updateQueriesTest.AddAttribute();
 
             foreach (var mi in methodInfos)
             {
@@ -276,10 +301,8 @@ namespace QueriesTestApplication
                     Console.WriteLine(val.Key + ":Failed");
 
             }
-            Console.WriteLine("Total methods called " + updateQueriesTest.TestResults.Count);
 
             updateQueriesTest.Report.PrintReport();
-
             Console.ReadLine();
         }
 
@@ -394,6 +417,58 @@ namespace QueriesTestApplication
                     Console.WriteLine(val.Key + ":Failed");
             }
             Console.WriteLine("Total methods called " + inOperatortTest.TestResults.Count);
+            Console.ReadLine();
+        }
+
+        private static void TempTests()
+        {
+            JsonValue val = (JsonValue)Common.CacheName;
+            var str = JsonConvert.SerializeObject(val); // datatype automatically added on serializing JsonValue
+
+            string city = "rawalpindi\\Islamabad";
+
+            JsonObject jsonObject = new JsonObject() { };
+            jsonObject.AddAttribute(nameof(city), city);
+
+            string jsonString = jsonObject.ToString(); // jsonString is made by jsonObject, but it is not valid because of one slash in city
+            try
+            {
+                var token = JToken.Parse(jsonString);
+
+            }
+            catch (Exception ex)
+            {
+                // when nwetonsoft will serialize it will automatically add slashes add will remove them in deserialization
+                jsonString = JsonConvert.SerializeObject(city).ToString();
+                var token = JToken.Parse(jsonString);
+
+
+
+            }
+
+        }
+
+        private static void EscapeSequencesVerifier()
+        {
+            object[] parameters = null;
+            BackslashVerifier slashVerifier = new BackslashVerifier();
+            Common.PrintClassName(nameof(BackslashVerifier));
+
+            MethodInfo[] methodInfos = typeof(BackslashVerifier).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            foreach (var mi in methodInfos)
+            {
+                try
+                {
+                    mi.Invoke(slashVerifier, parameters);
+                }
+                catch (Exception)
+                {
+
+                }
+
+            }
+            slashVerifier.Report.PrintReport();
             Console.ReadLine();
         }
     }

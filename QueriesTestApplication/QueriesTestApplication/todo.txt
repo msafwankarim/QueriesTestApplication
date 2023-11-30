@@ -1,4 +1,13 @@
 Is aggregate dependency supported. how will i add multiple dependencies in aggregate dependency
-how can i pass array of key\file dependency.
+how can i pass array of key\file dependency. (we can pass)
 extensible dependency custom dependency
 cache sync dependency also requires id password and server info how can i pass that
+test on all topologies and binary cache
+
+var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\Islamabad", ShipCountry = "Pakistan\\ASia" };
+this string is properly serialized by newtonsoft but fails with ncache json object 
+  JsonValueBase.Parse(jsonObject.ToString());
+
+  I have added value in JsonArray with escape sequences. WHile removing value should i add escape sequences to the value
+  while getting from indexer notation of arraaya what to do 
+
