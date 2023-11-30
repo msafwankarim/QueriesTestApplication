@@ -1,12 +1,17 @@
 ﻿using Alachisoft.NCache.Client;
+using Alachisoft.NCache.Common.Monitoring;
 using Alachisoft.NCache.JNIBridge.Net;
+using Alachisoft.NCache.Runtime.CacheManagement;
 using Alachisoft.NCache.Runtime.JSON;
 using Alachisoft.NCache.Sample.Data;
+using Quartz.Util;
 using QueriesTestApplication.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.DirectoryServices.ActiveDirectory;
+using System.Linq;
 using System.Reflection;
 using ReportHelper = QueriesTestApplication.Utils.ReportHelper;
 
@@ -70,7 +75,11 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@beverages", "Beverages");
                 queryCommand.Parameters.Add("@jsonValue", jsonValue);
-                var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
+
+                Helper.ThrowExceptionIfNoUpdates(updated);
+                Helper.ValidateDictionary(dictionary);
 
                 foreach (var item in productList)
                 {
@@ -209,7 +218,7 @@ namespace QueriesTestApplication
 
             try
             {
-               
+
                 var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\\\Islamabad", ShipCountry = "Pakistan\\\\ASia" };
                 JsonObject jsonObject = Helper.GetJsonOrder(order);
 
@@ -320,7 +329,7 @@ namespace QueriesTestApplication
             {
 
                 const int arraySize = 2;
-                                
+
                 var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\\\Islamabad", ShipCountry = "Pakistan\\\\]ASia" };
                 var orderArray = new Order[arraySize] { order, order };
 
@@ -353,7 +362,7 @@ namespace QueriesTestApplication
                     var updatedOrder = Newtonsoft.Json.JsonConvert.DeserializeObject<Order>(imagesArray[0].ToString());
 
                     if (updatedOrder.ShipCountry != order.ShipCountry)
-                       throw exception;
+                        throw exception;
 
                 }
 
@@ -369,7 +378,7 @@ namespace QueriesTestApplication
             }
 
         }
-  
+
         public void AddJsonArrayInObject()
         {
             cache.Clear();
@@ -564,7 +573,7 @@ namespace QueriesTestApplication
 
             try
             {
-           
+
 
                 const int arraySize = 2;
 
@@ -996,7 +1005,7 @@ namespace QueriesTestApplication
                 {
                     var result = cache.Get<Product>(key);
 
-                    if ( ! result.Images[updateIndex].ImageFormats[updateIndex].Format.Equals(ImageFormat))                    
+                    if (!result.Images[updateIndex].ImageFormats[updateIndex].Format.Equals(ImageFormat))
                         throw new Exception("Set operation to attribute of array with in array");
 
                 }
@@ -1249,7 +1258,7 @@ namespace QueriesTestApplication
 
             count++;
 
-            
+
 
             for (int i = 0; i < _totalItemToInsert; i++)
             {
@@ -1323,7 +1332,7 @@ namespace QueriesTestApplication
             cache.Clear();
             // PopulateCache();
             string ProductKey = "product1";
-            string methodName =MethodBase.GetCurrentMethod().Name;
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
 
             for (int i = 0; i < _totalItemToInsert; i++)
@@ -1346,7 +1355,7 @@ namespace QueriesTestApplication
                 int TotalFailedOperations = 0;
                 Helper.ValidateDictionary(dictionary);
 
-               
+
                 int TotalSuccessedOperations = 0;
 
                 for (int i = 0; i < _totalItemToInsert; i++)
@@ -1361,8 +1370,8 @@ namespace QueriesTestApplication
                         throw new Exception("Null value of attribute is not copied");
                 }
 
-                 _report.AddPassedTestCase(methodName, "Seccess:Partial Update items using CopyQuery1 ");
-              
+                _report.AddPassedTestCase(methodName, "Seccess:Partial Update items using CopyQuery1 ");
+
             }
             catch (Exception ex)
             {
@@ -1380,7 +1389,7 @@ namespace QueriesTestApplication
 
             count++;
 
-            var product = new Product() {  Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan", ShipName = "EverGreen" } };
+            var product = new Product() { Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan", ShipName = "EverGreen" } };
 
             for (int i = 0; i < _totalItemToInsert; i++)
             {
@@ -1421,7 +1430,7 @@ namespace QueriesTestApplication
                     var shipCity = OrderInCache.GetAttributeValue("ShipCity");
                     var Country = OrderInCache.GetAttributeValue("ShipCountry");
 
-                    if (shipCity.Value.ToString() == Country.Value.ToString() )
+                    if (shipCity.Value.ToString() == Country.Value.ToString())
                     {
                         var orderShipName = OrderInCache.GetAttributeValue("ShipName").Value.ToString();
                         var name = result.GetAttributeValue("Name").Value.ToString();
@@ -1438,7 +1447,7 @@ namespace QueriesTestApplication
                 }
 
                 _report.AddPassedTestCase(methodName, "Seccess:Partial Update items using Copy2Attributes ");
-                
+
             }
             catch (Exception ex)
             {
@@ -1469,7 +1478,7 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;     
+                IDictionary dictionary;
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
                 Helper.ValidateDictionary(dictionary);
@@ -1523,9 +1532,11 @@ namespace QueriesTestApplication
                 _ = cache.Get<JsonObject>(ProductKey);
 
                 var res = cache.Get<Product>(ProductKey);
+
                 // JArray.Insert is used in server side . this insert adds the new element at top and moves other one step ahead
+                // So the element of array that is to be copied is places at start of array
                 if (res.Images[0].FileName == res.Images[1].FileName)
-                    _report.AddPassedTestCase(methodName, "Success: Partial Update item to copy array indexes");
+                    _report.AddPassedTestCase(methodName, "Success: Partial Update to copy array from 1st index to 0th ndex");
                 else
                     throw exception;
 
@@ -1561,17 +1572,17 @@ namespace QueriesTestApplication
                 var exception = new Exception("Failure:Partial Update item to copy array indexes");
                 Helper.ValidateDictionary(dictionary);
 
-                foreach(var key in keys)
+                foreach (var key in keys)
                 {
                     var product = cache.Get<JsonObject>(key);
 
                     var images = (JsonArray)((JsonObject)product.GetAttributeValue("Images")).GetAttributeValue("$values");
 
-                    if ( product.GetAttributeValue("Id").Value.ToString() == "1" )
+                    if (product.GetAttributeValue("Id").Value.ToString() == "1")
                     {
                         var order = ((JsonObject)images[0]).GetAttributeValue("OrderID").Value.ToString();
                         var orderCompare = ((JsonObject)product.GetAttributeValue("Order")).GetAttributeValue("OrderID").Value.ToString();
-                        if(order == orderCompare)
+                        if (order == orderCompare)
                         {
                             _report.AddPassedTestCase(methodName, description);
                             break;
@@ -1600,6 +1611,7 @@ namespace QueriesTestApplication
 
 
         }
+
         public void CopyProductIdToOrderObject()
         {
             int updated = 0;
@@ -1621,7 +1633,7 @@ namespace QueriesTestApplication
                 stopwatch.Start();
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
-                                
+
                 Helper.ValidateDictionary(dictionary);
                 Helper.ThrowExceptionIfNoUpdates(updated);
 
@@ -1644,13 +1656,13 @@ namespace QueriesTestApplication
 
 
         }
+
         public void CopyOnAttributeThatDoesnotExist()
         {
-            int updated = 0;
+            int updated;
             cache.Clear();
-            // PopulateCache();
-            string ProductKey = "product1";
             string methodName = MethodBase.GetCurrentMethod().Name;
+            string description = "Copy destination attribute to non existing source attribute";
 
             count++;
 
@@ -1662,7 +1674,9 @@ namespace QueriesTestApplication
 
             try
             {
-                string query = "Update  Alachisoft.NCache.Sample.Data.Product  Copy Order.AttributeThatDoesnotExist = Order.ShipCity ";
+                string AttributeThatDoesnotExist;
+
+                string query = $"Update  Alachisoft.NCache.Sample.Data.Product  Copy Order.{nameof(AttributeThatDoesnotExist)} = Order.ShipCity ";
 
                 QueryCommand queryCommand = new QueryCommand(query);
                 // queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
@@ -1672,31 +1686,39 @@ namespace QueriesTestApplication
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
                 Helper.ValidateDictionary(dictionary);
-                throw new Exception("CopyOnAttributeThatDoesnotExist : Failed");
+
+                for (int i = 0; i < _totalItemToInsert; i++)
+                {
+                    var product = cache.Get<JsonObject>(i.ToString());
+
+                    if (!product.ContainsAttribute("AttributeThatDoesnotExist"))
+                        throw new Exception("the non exististing source attribute is not created by update query");
+
+                    string shipCity = ((JsonObject)product.GetAttributeValue("order")).GetAttributeValue("ShipCity").Value.ToString();
+                    string value = product.GetAttributeValue(nameof(AttributeThatDoesnotExist)).Value.ToString();
+
+                    if (shipCity != value)
+                        throw new Exception("the  destination attribute is not successfully copied to non existing source attribute");
+                }
+
+                _report.AddPassedTestCase(methodName, description);
+
             }
             catch (Exception ex)
             {
-                if (Helper.IsTargetNotFoundException(ex))
-                {
-                    _report.AddPassedTestCase(methodName, "CopyOnAttributeThatDoesnotExist : Passed");
-
-                }
-                else
-                {
-                    _report.AddFailedTestCase(methodName, ex);
-
-                }
+                _report.AddFailedTestCase(methodName, ex);
             }
 
 
         }
+
         public void CopyAnAttributeThatDoesnotExist()
         {
             int updated = 0;
             cache.Clear();
-            // PopulateCache();
-            string ProductKey = "product1";
             string methodName = MethodBase.GetCurrentMethod().Name;
+            string description = "Copy destination attribute that doesnot exist";
+
 
             count++;
 
@@ -1719,14 +1741,13 @@ namespace QueriesTestApplication
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
                 int TotalFailedOperations = 0;
                 Helper.ValidateDictionary(dictionary);
-                throw new Exception("CopyOnAttributeThatDoesnotExist : Failed");
+                throw new Exception(description);
             }
             catch (Exception ex)
             {
                 if (Helper.IsTargetNotFoundException(ex))
                 {
-                    _report.AddPassedTestCase(methodName, "CopyOnAttributeThatDoesnotExist : Passed");
-
+                    _report.AddPassedTestCase(methodName, description);
                 }
                 else
                 {
@@ -1762,7 +1783,7 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
                 IDictionary dictionary;
-                
+
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
                 Helper.ValidateDictionary(dictionary);
 
@@ -1794,43 +1815,46 @@ namespace QueriesTestApplication
         {
             int updated = 0;
             cache.Clear();
-            PopulateCache();
+            IList<string> keys = PopulateCacheAndGetKeys();
             string ProductKey = "product1";
             string methodName = MethodBase.GetCurrentMethod().Name;
 
             count++;
             try
             {
-                string query = "Update  Alachisoft.NCache.Sample.Data.Product  Move Order.ShipCountry = Order.ShipCity ,Order.Category=Order.ClassName ";
+                string query = "Update  Alachisoft.NCache.Sample.Data.Product  Move Order.ShipCountry = Order.ShipCity ,Order.OrderID=Category ";
 
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
-                
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out IDictionary dictionary);
                 Helper.ValidateDictionary(dictionary);
 
-              
-               
-                var prod = cache.Get<JsonObject>(ProductKey);
-                JsonObject order = (JsonObject)prod.GetAttributeValue("Order");
-                if (order.ContainsAttribute("ShipCity"))
+
+                foreach (string key in keys)
                 {
-                    throw new Exception("Failure:Partial Update items using Move query");
-                    testResults.Add(methodName, ResultStatus.Failure);
-                    return;
+                    var product = cache.Get<JsonObject>(key);
+                    int id = int.Parse(product.GetAttributeValue("Id").Value.ToString());
+
+                    var expectedValues = productList.
+                       Where(prod => prod.Id == id).
+                       Select(prod => new { prod.Order.ShipCountry, prod.Order.OrderID }).
+                       FirstOrDefault();
+
+                    JsonObject order = (JsonObject)product.GetAttributeValue("Order");
+
+                    if (order.ContainsAttribute("ShipCity") || product.ContainsAttribute("Category"))
+                        throw new Exception("Move attribute didnot removed the source attribute");
+
+                    string ShipCountry = order.GetAttributeValue("ShipCountry").Value.ToString();
+                    string orderId = order.GetAttributeValue("OrderID").Value.ToString();
+
+                    if (ShipCountry == expectedValues.ShipCountry && orderId == expectedValues.OrderID.ToString())
+                        _report.AddPassedTestCase(methodName, "Success: Partial Update to moves two attributes in one query");
+                    else
+                        throw new Exception("Failure:Partial Update to moves two attributes in one query");
                 }
-
-                string ShipCountry = (string)order.GetAttributeValue("ShipCountry").Value;
-                var Cateory = (string)order.GetAttributeValue("Category").Value;
-                if (ShipCountry == "rawalpindi" && Cateory == "Electronics")
-                    _report.AddPassedTestCase(methodName, "Success: Partial Update items using query");
-                else
-                    throw new Exception("Failure:Partial Update items using Move query");
-
-
             }
             catch (Exception ex)
             {
@@ -1843,14 +1867,18 @@ namespace QueriesTestApplication
         {
             int updated = 0;
             cache.Clear();
-            PopulateCache();
-            string ProductKey = "product1";
+
             string methodName = MethodBase.GetCurrentMethod().Name;
+
+            for (int i = 0; i < _totalItemToInsert; i++)
+            {
+                cache.Insert(i.ToString(), new Product() { Id = i, Time = DateTime.Now, Name = null, ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan" } });
+            }
 
             count++;
             try
             {
-                string query = "Update  Alachisoft.NCache.Sample.Data.Product  Move Order.ShipCountry = null ";
+                string query = "Update  Alachisoft.NCache.Sample.Data.Product  Move Order.ShipCountry = Name ";
 
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
@@ -1862,23 +1890,27 @@ namespace QueriesTestApplication
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
                 Helper.ValidateDictionary(dictionary);
 
-               
-                throw new Exception("Failure:Partial Update items using Move query");
+                for (int i = 0; i < _totalItemToInsert; i++)
+                {
+                    var product = cache.Get<JsonObject>(i.ToString());
 
+                    if (product.ContainsAttribute("Name"))
+                        throw new Exception("source attribute with null value is not removed by move query");
+
+                    if (product.GetAttributeValue("Name") == null || product.GetAttributeValue("Name").Value == null)
+                        continue;
+                    else
+                        throw new Exception("value of source attribute is not null");
+
+                }
+
+
+                _report.AddPassedTestCase(methodName, "copy attribute with null value");
 
             }
             catch (Exception ex)
             {
-                if (Helper.IsTargetNotFoundException(ex))
-                {
-                    _report.AddPassedTestCase(methodName, "MoveNullAttribute :Passed");
-
-                }
-                else
-                {
-                    _report.AddFailedTestCase(methodName, ex);
-
-                }
+                _report.AddFailedTestCase(methodName, ex);
             }
 
 
@@ -1900,12 +1932,12 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
                 IDictionary dictionary;
-        
+
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
                 Helper.ValidateDictionary(dictionary);
 
-                
+
                 var prod = cache.Get<JsonObject>(ProductKey);
                 JsonObject order = (JsonObject)prod.GetAttributeValue("Order");
                 if (order.ContainsAttribute("ShipCity"))
@@ -1934,8 +1966,7 @@ namespace QueriesTestApplication
         {
             int updated = 0;
             cache.Clear();
-            PopulateCache();
-            string ProductKey = "product1";
+            IList<string> keys = PopulateCacheAndGetKeys();
             string methodName = MethodBase.GetCurrentMethod().Name;
 
             count++;
@@ -1953,22 +1984,31 @@ namespace QueriesTestApplication
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
                 Helper.ValidateDictionary(dictionary);
 
-                throw new Exception("Failure:Partial Update items using Move query");
+                foreach (string key in keys)
+                {
+                    var product = cache.Get<JsonObject>(key);
 
+                    int id = int.Parse(product.GetAttributeValue("Id").Value.ToString());
 
+                    if (product.ContainsAttribute("ShipCity"))
+                        throw new Exception("source attribute is not removed by move query");
+
+                    string expectedValue = productList
+                        .Where(prod => prod.Id == id)
+                        .Select(prod => prod.Order.ShipCity)
+                        .ToString();
+
+                    string value = product.GetAttributeValue("AttributeThatDoesnotEixst").Value.ToString();
+
+                    if (value != expectedValue)
+                        throw new Exception("source attribute is not copied by move query");
+                }
+
+                _report.AddPassedTestCase(methodName, "move query to copy on attribute that does not exist");
             }
             catch (Exception ex)
             {
-                if (Helper.IsTargetNotFoundException(ex))
-                {
-                    _report.AddPassedTestCase(methodName, "MoveOnAttributeThatDoesnotEixst :Passed");
-
-                }
-                else
-                {
-                    _report.AddFailedTestCase(methodName, ex);
-
-                }
+                _report.AddFailedTestCase(methodName, ex);
             }
 
 
@@ -2066,7 +2106,7 @@ namespace QueriesTestApplication
         {
             int updated = 0;
             cache.Clear();
-            PopulateCache();
+            var keys = PopulateCacheAndGetKeys();
             string ProductKey = "product1";
             string methodName = MethodBase.GetCurrentMethod().Name;
 
@@ -2083,20 +2123,36 @@ namespace QueriesTestApplication
 
                 var exception = new Exception("Failure:Partial Update item to move array indexes");
                 Helper.ValidateDictionary(dictionary);
-                throw exception;
+
+                foreach (string key in keys)
+                {
+                    var product = cache.Get<JsonObject>(key);
+
+                    int id = int.Parse(product.GetAttributeValue("Id").Value.ToString());
+
+                    if (product.ContainsAttribute("Order"))
+                        throw new Exception("source attribute is not removed by move query");
+
+                    string expectedValue = productList
+                        .Where(prod => prod.Id == id)
+                        .Select(prod => prod.Order.ShipCity)
+                        .ToString();
+
+                    var order = (JsonObject)((JsonArray)((JsonObject)product.GetAttributeValue("Images")).GetAttributeValue("$values"))[0];
+                    string value = order.GetAttributeValue("ShipCity").Value.ToString();
+
+                    if (value != expectedValue)
+                        throw new Exception("source object is not copied  to array index  by move query");
+                }
+
+                _report.AddPassedTestCase(methodName, "move query to copy object to index of array");
+
+
+
             }
             catch (Exception ex)
             {
-                if (Helper.IsIncorrectFormatException(ex))
-                {
-                    _report.AddPassedTestCase(methodName, "MoveArrayToObject : Passed");
-                }
-                else
-                {
-                    _report.AddFailedTestCase(methodName, ex);
-
-                }
-
+                _report.AddFailedTestCase(methodName, ex);
             }
 
 
@@ -2338,16 +2394,47 @@ namespace QueriesTestApplication
             count++;
             try
             {
-                string name = "\"Chai\"";
+                string name = "Chai";
 
                 JsonValue jsonValue = (JsonValue)name;
 
-                //string query = "Update  Alachisoft.NCache.Sample.Data.Product Test Name = '\"Chai\"', Order.OrderID=10 Where Id=?";
                 string query = "Update  Alachisoft.NCache.Sample.Data.Product Test Name = @value, Order.OrderID=10 Where Id=?";
 
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
                 queryCommand.Parameters.Add("value", jsonValue);
+
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
+
+                Helper.ValidateDictionary(dictionary);
+
+                _report.AddPassedTestCase(methodName, "Test json attribute value");
+
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+
+        }
+
+        private void TestAttributeWithInlineValue()
+        {
+            int updated = 0;
+            cache.Clear();
+            PopulateCache();
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
+            count++;
+            try
+            {
+
+                string query = "Update  Alachisoft.NCache.Sample.Data.Product Test Name = '\"Chai\"', Order.OrderID=10 Where Id=?";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+                queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
 
@@ -2376,11 +2463,10 @@ namespace QueriesTestApplication
             count++;
             try
             {
-                string name = "\"Chai has been drunk\"";
+                string name = "Chai has been drunk";
 
                 JsonValue jsonValue = (JsonValue)name;
 
-                //string query = "Update  Alachisoft.NCache.Sample.Data.Product Test Name = '\"Chai\"', Order.OrderID=10 Where Id=?";
                 string query = "Update  Alachisoft.NCache.Sample.Data.Product Test Name = @value, Order.OrderID=10 Where Id=?";
 
                 QueryCommand queryCommand = new QueryCommand(query);
@@ -2390,12 +2476,12 @@ namespace QueriesTestApplication
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
 
                 Helper.ValidateDictionary(dictionary);
-                _report.AddFailedTestCase(methodName,new Exception(description));
+                _report.AddFailedTestCase(methodName, new Exception(description));
 
             }
             catch (Exception ex)
             {
-                if(Helper.IsTestOperationException(ex))
+                if (Helper.IsTestOperationException(ex))
                     _report.AddPassedTestCase(methodName, description);
                 else
                     _report.AddFailedTestCase(methodName, ex);
@@ -2408,19 +2494,25 @@ namespace QueriesTestApplication
         {
             int updated = 0;
             cache.Clear();
-            PopulateCache();
+
             string methodName = MethodBase.GetCurrentMethod().Name;
 
             count++;
             try
             {
                 var order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan" };
+
+                for (int i = 0; i < _totalItemToInsert; i++)
+                {
+                    cache.Insert(i.ToString(), new Product() { Id = i, Time = DateTime.Now, Name = "Chai", ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = order });
+                }
+
                 var jorder = Helper.GetJsonOrder(order);
 
-                string query = "Update Alachisoft.NCache.Sample.Data.Product Test Order = @ProductName Where Id=?";
+                string query = "Update Alachisoft.NCache.Sample.Data.Product Test Order = @jorder Where Id=?";
 
                 QueryCommand queryCommand = new QueryCommand(query);
-                queryCommand.Parameters.Add("@ProductName", jorder);
+                queryCommand.Parameters.Add("@jorder", jorder);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
@@ -2481,17 +2573,35 @@ namespace QueriesTestApplication
         {
             int updated = 0;
             cache.Clear();
-            PopulateCache();
             string methodName = MethodBase.GetCurrentMethod().Name;
             string description = "Test Operation in Update query using JsonArray";
-
-
+           
             count++;
             try
             {
-                foreach (var item in productList)
+
+                var array = new Image[3] { new Image(), new Image(), new Image() };
+
+                for (int i = 0; i < _totalItemToInsert; i++)
                 {
-                    string serializedArray = Newtonsoft.Json.JsonConvert.SerializeObject(item.Images);
+                    cache.Insert(i.ToString(),
+                        new Product()
+                        {
+                            Id = i,
+                            Time = DateTime.Now,
+                            Name = "Chai",
+                            ClassName = "Electronics",
+                            Category = "Beverages",
+                            UnitPrice = 35,
+                            Order = new Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan" },
+                            Images = array
+                        });
+                }
+
+                string serializedArray = Newtonsoft.Json.JsonConvert.SerializeObject(array);
+
+                foreach (var item in productList)
+                {                   
 
                     string query = "Update Alachisoft.NCache.Sample.Data.Product Test Images = @jsonArray Where Id=?";
                     JsonArray jsonArray = new JsonArray(serializedArray);
@@ -2680,10 +2790,10 @@ namespace QueriesTestApplication
                 if (updatedDate.Year != 2000 || updatedDate.Month != 1 || updatedDate.Day != 5)
                     throw new Exception("Set Operation failed in complex query");
 
-                if(result.Category != "Beverages" || result.ClassName != "Beverages")
+                if (result.Category != "Beverages" || result.ClassName != "Beverages")
                     throw new Exception("Copy Operation failed in complex query");
 
-                if(result.Id != default || result.UnitPrice != 35)
+                if (result.Id != default || result.UnitPrice != 35)
                     throw new Exception("Move Operation failed in complex query");
 
 
@@ -2777,7 +2887,7 @@ namespace QueriesTestApplication
 
         #region  --------------------------------- Helper Methods --------------------------------- 
 
-      
+
 
         private void PopulateCache(int totalItemToAdd = -1)
         {
