@@ -14,6 +14,7 @@ namespace QueriesTestApplication.Utils
             "EqualsParameter count mismatch."
         };
 
+        
         public static void ValidateDictionary(IDictionary dictionary)
         {
             if (dictionary.Count > 0)

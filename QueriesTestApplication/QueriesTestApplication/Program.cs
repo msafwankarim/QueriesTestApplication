@@ -278,7 +278,6 @@ namespace QueriesTestApplication
 
             MethodInfo[] methodInfos = typeof(UpdateQueriesTestForJsonObject).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-           // updateQueriesTest.AddAttribute();
 
             foreach (var mi in methodInfos)
             {

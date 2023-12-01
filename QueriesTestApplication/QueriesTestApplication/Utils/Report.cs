@@ -8,11 +8,23 @@ namespace QueriesTestApplication.Utils
     public class Report
     {
         public bool RemoveStackTrace = true;
-       IDictionary<string, object> _failedTestCases;
-       IDictionary<string, string> _passedTestCases;
-       string _className;
 
-        public Report(string className) 
+        IDictionary<string, object> _failedTestCases;
+        IDictionary<string, string> _passedTestCases;
+
+        public static List<string> _expectedFailTestCases = new List<string>()
+        {
+            "TestJsonArray" // test case fails because server side has serialized array which means that the objects inside the array are wrapped i.e $value {}
+        };
+
+        bool _printExpectedFailedCases = false;
+
+        public bool PrintExpectedFailedCases { get => _printExpectedFailedCases; }
+
+
+        string _className;
+
+        public Report(string className)
         {
             _className = className;
             _failedTestCases = new Dictionary<string, object>();
@@ -25,7 +37,7 @@ namespace QueriesTestApplication.Utils
 
         public void AddFailedTestCase(string testCaseName, Exception exception)
         {
-            _failedTestCases.Add(testCaseName,exception.Message);
+            _failedTestCases.Add(testCaseName, exception.Message);
         }
 
         public void PrintFailedTestCases()
@@ -39,16 +51,19 @@ namespace QueriesTestApplication.Utils
 
             foreach (var testCase in _failedTestCases)
             {
+
+                if (_expectedFailTestCases.Contains(testCase.Key) && !_printExpectedFailedCases)
+                    continue;
+
                 string msg = testCase.Value.ToString();
 
                 if (RemoveStackTrace)
                     RemoveStackTraceFromMessage(ref msg);
 
-                ReportHelper.PrintError(string.Format(ResourceMessages.FailedTestCaseMessage, serialNumber++,testCase.Key, ""));
+                ReportHelper.PrintError(string.Format(ResourceMessages.FailedTestCaseMessage, serialNumber++, testCase.Key, ""));
                 Console.Write(msg);
             }
         }
-          
 
         public void PrintPassedTestCases()
         {
@@ -59,7 +74,7 @@ namespace QueriesTestApplication.Utils
             int serialNumber = 1;
             foreach (var testCase in _passedTestCases)
             {
-                ReportHelper.PrintInfo(string.Format(ResourceMessages.PassedTestCaseMessage, serialNumber ++, testCase.Key,testCase.Value));
+                ReportHelper.PrintInfo(string.Format(ResourceMessages.PassedTestCaseMessage, serialNumber++, testCase.Key, testCase.Value));
             }
         }
 

@@ -9,6 +9,11 @@ namespace QueriesTestApplication.Utils
 {
     public static class Helper
     {
+
+        private static string _testOperationExceptionMessage = "Specified value not equals to test value";
+
+        public static string TestOperationExceptionMessage { get => _testOperationExceptionMessage; }
+
         public static void ValidateDictionary(IDictionary dictionary)
         {
             if (dictionary.Count > 0)
@@ -62,7 +67,7 @@ namespace QueriesTestApplication.Utils
 
         public static bool IsTestOperationException(Exception ex)
         {
-            return ex.Message.Contains("Specified value not equals to test value");
+            return ex.Message.Contains(_testOperationExceptionMessage);
         }
 
         #endregion

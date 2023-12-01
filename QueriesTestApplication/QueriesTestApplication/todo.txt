@@ -11,3 +11,4 @@ this string is properly serialized by newtonsoft but fails with ncache json obje
   I have added value in JsonArray with escape sequences. WHile removing value should i add escape sequences to the value
   while getting from indexer notation of arraaya what to do 
 
+set name = aqib will throw unexpected chacracter encountered exception.(\"aqib\" is correct )
