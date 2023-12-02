@@ -4,14 +4,11 @@ using Alachisoft.NCache.Runtime.Caching;
 using Alachisoft.NCache.Runtime.Dependencies;
 using Alachisoft.NCache.Runtime.JSON;
 using Alachisoft.NCache.Sample.Data;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
-
-using Newtonsoft.Json.Linq;
 using Alachisoft.NCache.Runtime;
 using System.Data.SqlClient;
 using QueriesTestApplication.Utils;
@@ -63,7 +60,9 @@ namespace QueriesTestApplication
                 cache.Clear();
 
                 string JsonString = "{'group':'DevTeam'}";
-                var MetaData = JObject.Parse(JsonString);
+                //var MetaData = JObject.Parse(JsonString);
+                JsonObject MetaData = JsonObject.Parse(JsonString) as JsonObject;
+
 
                 string key1 = "key_GroupMetadataInJObject";
                 var val = GetProduct();
@@ -112,7 +111,8 @@ namespace QueriesTestApplication
                 cache.Clear();
 
                 string JsonString = "{'priority':'AboveNormal'}";
-                var MetaData = JObject.Parse(JsonString);
+                //var MetaData = JObject.Parse(JsonString);
+                JsonObject MetaData = JsonObject.Parse(JsonString) as JsonObject;
 
                 string key1 = "key_PriorityMetadataInJObject";
                 var val = GetProduct();
@@ -307,7 +307,9 @@ namespace QueriesTestApplication
                 cache.Clear();
 
                 string JsonString = "{'tags':['Important Product','Imported Product']}";
-                var MetaData = JObject.Parse(JsonString);
+                //var MetaData = JObject.Parse(JsonString);
+                JsonObject MetaData = JsonObject.Parse(JsonString) as JsonObject;
+
 
                 string key1 = "abc";
                 var val = GetProduct();
@@ -366,7 +368,9 @@ namespace QueriesTestApplication
                 string JsonString = InvalidStrings[rand.Next(0, InvalidStrings.Length)];
 
 
-                var MetaData = JObject.Parse(JsonString);
+                // var MetaData = JObject.Parse(JsonString);
+                JsonObject MetaData = JsonObject.Parse(JsonString) as JsonObject;
+
 
                 string key1 = "abc";
                 var val = GetProduct();
@@ -500,7 +504,8 @@ namespace QueriesTestApplication
             {
                 cache.Clear();
                 string NamedTags = "{'namedtags': [{'BlackFridayDiscount': 'No','type': 'string'},{'BlackFridayFlashDiscount': 'Yes', 'type': 'string'}]}";
-                JObject Metadata = JObject.Parse(NamedTags);               
+                //JObject Metadata = JObject.Parse(NamedTags);               
+                JsonObject Metadata = JsonObject.Parse(NamedTags) as JsonObject;               
 
                 string key1 = "abc";
                 var val = GetProduct();
