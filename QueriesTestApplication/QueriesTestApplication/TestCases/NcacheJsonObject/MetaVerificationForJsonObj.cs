@@ -19,32 +19,62 @@ using Alachisoft.NCache.Caching.Statistics;
 using Alachisoft.NCache.Common;
 using System.Configuration.Provider;
 using Alachisoft.NCache.Runtime.CacheManagement;
+using System.CodeDom;
+using System.Linq;
 
 namespace QueriesTestApplication
 {
     class MetaVerificationTestForJsonObj
     {
-        private int count = 0;
-        readonly ICache cache;
-        public Dictionary<string, ResultStatus> testResults;
-
-        readonly Report _report;
-        readonly int _cleanIntervalSeconds = 5000 + 1000; // milliSeconds
-
-        public Dictionary<string, ResultStatus> TestResults
-        {
-            get { return testResults; }
-        }
+        private readonly ICache _cache;
+        private readonly Report _report;
+        private readonly int _cleanIntervalSeconds = 5; 
 
         public Report Report { get => _report; }
 
         public MetaVerificationTestForJsonObj()
         {
-            cache = CacheManager.GetCache(Common.CacheName);
-            testResults = new Dictionary<string, ResultStatus>();
-
+            _cache = CacheManager.GetCache(Common.CacheName);
+            _report = new Report(nameof(MetaVerificationTestForJsonObj));
         }
 
+
+        public void AddSimpleItem()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                _cache.Clear();
+               
+                string key1 = "abc";
+                var val = GetProduct();
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value) Values (@key1, @val)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+
+                var result = _cache.QueryService.ExecuteNonQuery(queryCommand);
+
+                var item = _cache.Get<Product>(key1);
+
+                if (item.Time != val.Time || item.Id != val.Id)
+                    throw new Exception("item added and obtained is not same");
+
+
+                 _report.AddPassedTestCase(methodName, "adding and getting simple product");
+
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+        }
 
         #region --------------------------------- Priority  ----------------------------
 
@@ -56,12 +86,12 @@ namespace QueriesTestApplication
         //  Normal
         //  NotRemovable
 
-        public void Low()
+        public void LowPriority()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
 
                 JsonObject MetaData = new JsonObject();
                 MetaData.AddAttribute("Priority", "Low");
@@ -77,9 +107,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", val);
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(key1);
+                var cacheItem = _cache.GetCacheItem(key1);
 
                 var PriorityAttribute = cacheItem.Priority;
 
@@ -100,12 +130,12 @@ namespace QueriesTestApplication
 
         }
 
-        public void BelowNormal()
+        public void BelowNormalPriority()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
 
                 JsonObject MetaData = new JsonObject();
                 MetaData.AddAttribute("Priority", "BelowNormal");
@@ -121,13 +151,13 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", val);
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(key1);
+                var cacheItem = _cache.GetCacheItem(key1);
 
                 var PriorityAttribute = cacheItem.Priority;
 
-                if (PriorityAttribute == CacheItemPriority.AboveNormal)
+                if (PriorityAttribute == CacheItemPriority.BelowNormal)
                 {
                     _report.AddPassedTestCase(methodName, "Success: Add BelowNormal Priority Metadata In JSON Object ");
                 }
@@ -144,12 +174,12 @@ namespace QueriesTestApplication
 
         }
 
-        public void Normal()
+        public void NormalPriority()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
 
                 JsonObject MetaData = new JsonObject();
                 MetaData.AddAttribute("Priority", "Normal");
@@ -165,9 +195,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", val);
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(key1);
+                var cacheItem = _cache.GetCacheItem(key1);
 
                 var PriorityAttribute = cacheItem.Priority;
 
@@ -188,12 +218,12 @@ namespace QueriesTestApplication
 
         }
 
-        public void AboveNormal()
+        public void AboveNormalPriority()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
 
                 JsonObject MetaData = new JsonObject();
                 MetaData.AddAttribute("Priority", "AboveNormal");
@@ -209,9 +239,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", val);
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(key1);
+                var cacheItem = _cache.GetCacheItem(key1);
 
                 var PriorityAttribute = cacheItem.Priority;
 
@@ -232,12 +262,12 @@ namespace QueriesTestApplication
 
         }
 
-        public void High()
+        public void HighPriority()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
 
                 JsonObject MetaData = new JsonObject();
                 MetaData.AddAttribute("Priority", "High");
@@ -253,13 +283,13 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", val);
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(key1);
+                var cacheItem = _cache.GetCacheItem(key1);
 
                 var PriorityAttribute = cacheItem.Priority;
 
-                if (PriorityAttribute == CacheItemPriority.AboveNormal)
+                if (PriorityAttribute == CacheItemPriority.High)
                 {
                     _report.AddPassedTestCase(methodName, "Success: Add High Priority Metadata In JSON Object ");
                 }
@@ -275,13 +305,13 @@ namespace QueriesTestApplication
             }
 
         }
-             
-        public void NotRemovable()
+
+        public void NotRemovablePriority()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
 
                 JsonObject MetaData = new JsonObject();
                 MetaData.AddAttribute("Priority", "NotRemovable");
@@ -297,9 +327,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", val);
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(key1);
+                var cacheItem = _cache.GetCacheItem(key1);
 
                 var PriorityAttribute = cacheItem.Priority;
 
@@ -320,12 +350,12 @@ namespace QueriesTestApplication
 
         }
 
-        public void Default()
+        public void DefaultPriority()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
 
                 JsonObject MetaData = new JsonObject();
                 MetaData.AddAttribute("Priority", "Default");
@@ -341,13 +371,13 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", val);
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(key1);
+                var cacheItem = _cache.GetCacheItem(key1);
 
                 var PriorityAttribute = cacheItem.Priority;
 
-                if (PriorityAttribute == CacheItemPriority.Default)
+                if (PriorityAttribute == CacheItemPriority.Normal) // value for default priority is normal
                 {
                     _report.AddPassedTestCase(methodName, "Success: Add Default Priority Metadata In JSON Object ");
                 }
@@ -374,7 +404,7 @@ namespace QueriesTestApplication
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
 
                 JsonObject MetaData = new JsonObject();
 
@@ -396,10 +426,11 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var ItemFromCache = cache.GetCacheItem(key1);
+                var ItemFromCache = _cache.GetCacheItem(key1);
                 var expirationFromCache = ItemFromCache.Expiration;
+
 
                 if (expirationFromCache.Type != ExpirationType.None)
                     throw new Exception("Cache item obtanined doesnot have None expiration");
@@ -422,7 +453,7 @@ namespace QueriesTestApplication
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
 
                 JsonObject MetaData = new JsonObject();
 
@@ -444,9 +475,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var ItemFromCache = cache.GetCacheItem(key1);
+                var ItemFromCache = _cache.GetCacheItem(key1);
                 var expirationFromCache = ItemFromCache.Expiration;
 
                 if (expirationFromCache.Type != ExpirationType.Sliding)
@@ -456,7 +487,7 @@ namespace QueriesTestApplication
                 Console.WriteLine($"Waiting for {sleepTime} milli seconds before verifying sliding expiration");
                 Thread.Sleep(sleepTime);
 
-                ItemFromCache = cache.GetCacheItem(key1);
+                ItemFromCache = _cache.GetCacheItem(key1);
 
                 if (ItemFromCache == null)
                     _report.AddPassedTestCase(methodName, "Success: Add Sliding Expiration in JSON object");
@@ -479,7 +510,7 @@ namespace QueriesTestApplication
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
 
                 JsonObject MetaData = new JsonObject();
 
@@ -500,9 +531,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", val);
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var ItemFromCache = cache.GetCacheItem(key1);
+                var ItemFromCache = _cache.GetCacheItem(key1);
 
                 if (ItemFromCache.Expiration.Type != ExpirationType.Absolute)
                     throw new Exception("Item obtained does not have absolute expiration");
@@ -512,7 +543,7 @@ namespace QueriesTestApplication
                 Console.WriteLine($"Waiting for {sleepTime} MilliSeconds for Testing Expiration ");
                 Thread.Sleep(sleepTime);
 
-                var returned = cache.Get<Alachisoft.NCache.Sample.Data.Product>(key1);
+                var returned = _cache.Get<Alachisoft.NCache.Sample.Data.Product>(key1);
                 if (returned != null)
                 {
                     throw new Exception("Failure: Add Absolute Expiration Metadata in JSON object");
@@ -531,12 +562,23 @@ namespace QueriesTestApplication
 
         }
 
-        private void DefaultAbsoluteExpirationInJsonObject()
+        public void DefaultAbsoluteExpirationInJsonObject()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
+
+                string key1 = "abc";
+                var val = GetProduct();
+
+
+                var directInsert = _cache.Insert(key1, new CacheItem(val) { Expiration = new Expiration(ExpirationType.DefaultAbsolute) });
+                var directGetCacheItem = _cache.GetCacheItem(key1);
+                var expectedExpirationType = directGetCacheItem.Expiration.Type;
+
+                _cache.Remove(key1);
+
 
                 JsonObject MetaData = new JsonObject();
 
@@ -546,8 +588,8 @@ namespace QueriesTestApplication
 
                 MetaData.AddAttribute("expiration", expiration);
 
-                string key1 = "abc";
-                var val = GetProduct();
+                
+
 
                 string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
 
@@ -558,25 +600,25 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var ItemFromCache = cache.GetCacheItem(key1);
+                var ItemFromCache = _cache.GetCacheItem(key1);
                 var expirationFromCache = ItemFromCache.Expiration;
 
 
-                if (expirationFromCache.Type != ExpirationType.DefaultAbsolute)
+                if (expirationFromCache.Type != expectedExpirationType)
                     throw new Exception("Cache item obtanined doesnot have DefaultAbsolute expiration");
 
                 var sleepTime = ExpirationTimes.DefaultAbsolute * 1000 + _cleanIntervalSeconds * 1000;
                 Console.WriteLine($"Waiting for {sleepTime} milli seconds before verifying DefaultAbsolute expiration");
                 Thread.Sleep(sleepTime);
 
-                ItemFromCache = cache.GetCacheItem(key1);
+                ItemFromCache = _cache.GetCacheItem(key1);
 
                 if (ItemFromCache == null)
                     _report.AddPassedTestCase(methodName, "Success: Add DefaultAbsolute Expiration in JSON object");
                 else
-                    throw new Exception("Failure: Add DefaultAbsolute Metadata in JSON object");
+                    throw new Exception("Failure: item didnot expired after inserting with DefaultAbsolute JSON object");
 
 
 
@@ -594,7 +636,18 @@ namespace QueriesTestApplication
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
+
+                string key1 = "abc";
+                var val = GetProduct();
+
+
+                var directInsert = _cache.Insert(key1, new CacheItem(val) { Expiration = new Expiration(ExpirationType.DefaultAbsoluteLonger) });
+                var directGetCacheItem = _cache.GetCacheItem(key1);
+                var expectedExpirationType = directGetCacheItem.Expiration.Type;
+
+                _cache.Remove(key1);
+
 
                 JsonObject MetaData = new JsonObject();
 
@@ -604,9 +657,7 @@ namespace QueriesTestApplication
 
                 MetaData.AddAttribute("expiration", expiration);
 
-                string key1 = "abc";
-                var val = GetProduct();
-
+              
                 string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
 
                 QueryCommand queryCommand = new QueryCommand(query);
@@ -616,13 +667,13 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var ItemFromCache = cache.GetCacheItem(key1);
+                var ItemFromCache = _cache.GetCacheItem(key1);
                 var expirationFromCache = ItemFromCache.Expiration;
 
 
-                if (expirationFromCache.Type != ExpirationType.DefaultAbsoluteLonger)
+                if (expirationFromCache.Type != expectedExpirationType)
                     throw new Exception("Cache item obtanined doesnot have DefaultAbsoluteLonger expiration");
 
                 var sleepTime = ExpirationTimes.DefaultAbsoluteLonger * 1000 + _cleanIntervalSeconds * 1000;
@@ -630,7 +681,7 @@ namespace QueriesTestApplication
 
                 Thread.Sleep(sleepTime);
 
-                ItemFromCache = cache.GetCacheItem(key1);
+                ItemFromCache = _cache.GetCacheItem(key1);
 
                 if (ItemFromCache == null)
                     _report.AddPassedTestCase(methodName, "Success: Add DefaultAbsoluteLonger Expiration in JSON object");
@@ -652,7 +703,18 @@ namespace QueriesTestApplication
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
+
+                string key1 = "abc";
+                var val = GetProduct();
+
+
+                var directInsert = _cache.Insert(key1, new CacheItem(val) { Expiration = new Expiration(ExpirationType.DefaultSliding) });
+                var directGetCacheItem = _cache.GetCacheItem(key1);
+                var expectedExpirationType = directGetCacheItem.Expiration.Type;
+
+                _cache.Remove(key1);
+
 
                 JsonObject MetaData = new JsonObject();
 
@@ -662,8 +724,7 @@ namespace QueriesTestApplication
 
                 MetaData.AddAttribute("expiration", expiration);
 
-                string key1 = "abc";
-                var val = GetProduct();
+               
 
                 string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
 
@@ -674,20 +735,20 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var ItemFromCache = cache.GetCacheItem(key1);
+                var ItemFromCache = _cache.GetCacheItem(key1);
                 var expirationFromCache = ItemFromCache.Expiration;
 
 
-                if (expirationFromCache.Type != ExpirationType.DefaultSliding)
+                if (expirationFromCache.Type != expectedExpirationType)
                     throw new Exception("Cache item obtanined doesnot have DefaultSliding expiration");
 
                 var sleepTime = ExpirationTimes.DefaultSliding * 1000 + _cleanIntervalSeconds * 1000;
                 Console.WriteLine($"Waiting for {sleepTime} milli seconds before verifying sliding expiration");
                 Thread.Sleep(sleepTime);
 
-                ItemFromCache = cache.GetCacheItem(key1);
+                ItemFromCache = _cache.GetCacheItem(key1);
 
                 if (ItemFromCache == null)
                     _report.AddPassedTestCase(methodName, "Success: Add DefaultSliding Expiration in JSON object");
@@ -710,13 +771,79 @@ namespace QueriesTestApplication
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
+                string key1 = "abc";
+                var val = GetProduct();
+
+                var directInsert = _cache.Insert(key1, new CacheItem(val) { Expiration = new Expiration(ExpirationType.DefaultSlidingLonger) });
+                var directGetCacheItem = _cache.GetCacheItem(key1);
+                var expectedExpirationType = directGetCacheItem.Expiration.Type;
+
+                _cache.Remove(key1);
 
                 JsonObject MetaData = new JsonObject();
 
                 JsonObject expiration = new JsonObject();
                 expiration.AddAttribute("type", "DefaultSlidingLonger");
                 expiration.AddAttribute("interval", ExpirationTimes.DefaultSlidingLonger);
+
+                MetaData.AddAttribute("expiration", expiration);
+
+
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+                queryCommand.Parameters.Add("@metadata", MetaData);
+
+
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var ItemFromCache = _cache.GetCacheItem(key1);
+                var expirationFromCache = ItemFromCache.Expiration;
+
+
+                if (expirationFromCache.Type != expectedExpirationType)
+                    throw new Exception("Cache item obtanined doesnot have DefaultSlidingLonger expiration");
+
+                var sleepTime = ExpirationTimes.DefaultSlidingLonger * 1000 + _cleanIntervalSeconds * 1000;
+                Console.WriteLine($"Waiting for {sleepTime} milli seconds before verifying sliding expiration");
+
+                Thread.Sleep(sleepTime);
+
+                ItemFromCache = _cache.GetCacheItem(key1);
+
+                if (ItemFromCache == null)
+                    _report.AddPassedTestCase(methodName, "Success: Add DefaultSlidingLonger Expiration in JSON object");
+                else
+                    throw new Exception("Failure: Add DefaultSlidingLonger Metadata in JSON object");
+
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+        }
+
+        private void WrongExpiration()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                _cache.Clear();
+
+                string wrongExpiration = "WrongExpiration";
+
+                JsonObject MetaData = new JsonObject();
+
+                JsonObject expiration = new JsonObject();
+                expiration.AddAttribute("type", wrongExpiration);
 
                 MetaData.AddAttribute("expiration", expiration);
 
@@ -731,28 +858,19 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", val);
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
+                try
+                {
+                    var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
+                }
+                catch (Exception ex)
+                {
+                    if (ex.Message.Contains("expiration") && Helper.IsInCorrectMetaException(ex))
+                        _report.AddPassedTestCase(methodName, "add wrong meta in query");
+                    else
+                        throw;       
+                }
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
-
-                var ItemFromCache = cache.GetCacheItem(key1);
-                var expirationFromCache = ItemFromCache.Expiration;
-
-
-                if (expirationFromCache.Type != ExpirationType.DefaultSlidingLonger)
-                    throw new Exception("Cache item obtanined doesnot have DefaultSlidingLonger expiration");
-
-                var sleepTime = ExpirationTimes.DefaultSlidingLonger * 1000 + _cleanIntervalSeconds * 1000;
-                Console.WriteLine($"Waiting for {sleepTime} milli seconds before verifying sliding expiration");
-
-                Thread.Sleep(sleepTime);
-
-                ItemFromCache = cache.GetCacheItem(key1);
-
-                if (ItemFromCache == null)
-                    _report.AddPassedTestCase(methodName, "Success: Add DefaultSlidingLonger Expiration in JSON object");
-                else
-                    throw new Exception("Failure: Add DefaultSlidingLonger Metadata in JSON object");
-
+                throw new Exception("Didnot get exception in wrong expiration");
 
             }
             catch (Exception ex)
@@ -775,7 +893,7 @@ namespace QueriesTestApplication
 
             try
             {
-                cache.Clear();
+                _cache.Clear();
 
                 string JsonString = "{\"group\":\"DevTeam\"}";
                 var MetaData = new JsonObject(JsonString);
@@ -791,9 +909,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", val);
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(key1);
+                var cacheItem = _cache.GetCacheItem(key1);
 
                 var GroupAttribute = (JsonValue)cacheItem.Group;
 
@@ -816,12 +934,59 @@ namespace QueriesTestApplication
 
         #region --------------------------------- Tags ---------------------------------
 
+        public void AddTagMetadataInJSONObject()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                _cache.Clear();
+
+                var MetaData = new JsonObject();
+                JsonArray tags = new JsonArray();
+                tags.Add("Important Product");
+
+                MetaData.AddAttribute("tags", tags);
+
+                string key1 = "abc";
+                var val = GetProduct();
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+                queryCommand.Parameters.Add("@metadata", MetaData);
+
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                Tag[] SearchTags = new Tag[2] { new Tag("Important Product"), new Tag("Imported Product") };
+
+                _ = _cache.Get<JsonObject>(key1);
+                _ = _cache.Get<Product>(key1);
+
+                IDictionary<string, Product> data = _cache.SearchService.GetByTags<Product>(SearchTags, TagSearchOptions.ByAllTags);
+
+                if (data.Count > 0)
+                    _report.AddPassedTestCase(methodName, "Success: Add TagsMetaData in JSON object");
+                else
+                    throw new Exception("Failure: Add TagsMetaData in JSON object");
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+        }
+
         public void TagsMetadataInJSONObject()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
 
                 var MetaData = new JsonObject();
                 JsonArray tags = new JsonArray();
@@ -841,20 +1006,19 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", val);
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 Tag[] SearchTags = new Tag[2] { new Tag("Important Product"), new Tag("Imported Product") };
-                //Tag[] SearchTags = new Tag[2] { new Tag("\"Important Product\""), new Tag("Imported Product") };
-                IDictionary<string, Product> data = cache.SearchService.GetByTags<Product>(SearchTags, TagSearchOptions.ByAllTags);
 
-                if (data.Count > 0)
-                {
-                    _report.AddPassedTestCase(methodName, "Success: Add TagsMetaData in JSON object");
-                }
-                else
-                {
-                    throw new Exception("Failure: Add TagsMetaData in JSON object");
-                }
+                _ = _cache.Get<JsonObject>(key1);
+                _ = _cache.Get<Product>(key1);
+
+                IDictionary<string, Product> data = _cache.SearchService.GetByTags<Product>(SearchTags, TagSearchOptions.ByAllTags);
+
+                if (data.Count > 0)                
+                    _report.AddPassedTestCase(methodName, "Success: Add TagsMetaData in JSON object");                
+                else                
+                    throw new Exception("Failure: Add TagsMetaData in JSON object");                
 
             }
             catch (Exception ex)
@@ -875,7 +1039,7 @@ namespace QueriesTestApplication
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
-                cache.Clear();
+                _cache.Clear();
                 double percentage = 1.5;
                 //JSON Object to be Added as MetaData
                 var MetaData = new JsonObject();
@@ -890,13 +1054,14 @@ namespace QueriesTestApplication
                 Discount.AddAttribute("type", "string");
 
                 JsonObject Percentage = new JsonObject();
-                FlashDiscount.AddAttribute("Percentage", percentage);
-                FlashDiscount.AddAttribute("type", "double");
+                Percentage.AddAttribute("Percentage", percentage);
+                Percentage.AddAttribute("type", "double");
 
                 //NameTagArray Containing all the NameTags
                 JsonArray NameTagsArray = new JsonArray();
                 NameTagsArray.Add(FlashDiscount);
                 NameTagsArray.Add(Discount);
+                NameTagsArray.Add(Percentage);
 
                 //Adding nameTagArray in JsonObject
                 MetaData.AddAttribute("namedtags", NameTagsArray);
@@ -911,8 +1076,8 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", val);
                 queryCommand.Parameters.Add("@metadata", MetaData);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
-                var cacheItem = cache.GetCacheItem(key1);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
+                var cacheItem = _cache.GetCacheItem(key1);
 
                 var Attributes = cacheItem.NamedTags;
 
@@ -938,7 +1103,7 @@ namespace QueriesTestApplication
 
         #region --------------------------------- Key Dependency -----------------------
 
-        private void KeyDependency()
+        public void KeyDependency()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
             string Itemkey = "KeyDependency";
@@ -949,13 +1114,15 @@ namespace QueriesTestApplication
             {
 
                 var masterKey = Guid.NewGuid().ToString();
-                cache.Insert(masterKey, item);
+                _cache.Insert(masterKey, item);
 
                 string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
 
 
-                // string jsonString = "{\"dependency\": [{\"key\": {\"key\":"+ $"\"{Itemkey}\"" + "}}]}";
-                string jsonString = "{\"dependency\": [{\"key\": {\"key\":" + $"\"{masterKey}\"" + "}}]}";
+                string keysArray = $"[\"{masterKey}\"]";
+                JsonArray array = new JsonArray(keysArray);
+                
+                string jsonString = @"{""dependency"":[{""key"":"+keysArray+"}]}";
 
                 var jsonObject = new JsonObject(jsonString);
 
@@ -964,9 +1131,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", item);
                 queryCommand.Parameters.Add("@metadata", jsonObject);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(Itemkey);
+                var cacheItem = _cache.GetCacheItem(Itemkey);
 
                 if (cacheItem == null)
                     throw new Exception("item not inserted with key dependency");
@@ -975,9 +1142,79 @@ namespace QueriesTestApplication
                     throw new Exception("key dependency is not added with cache item");
 
                 //update master key
-                cache.Remove(masterKey);
+                _cache.Remove(masterKey);
 
-                if (cache.GetCacheItem(Itemkey) != null)
+                if (_cache.GetCacheItem(Itemkey) != null)
+                    throw new Exception($"Removing master key didnot triggered key dependency");
+
+                _report.AddPassedTestCase(methodName, description);
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+
+
+        }
+
+        public void KeyDependencyWithArrayOfMasterKeys()
+        {
+            string methodName = MethodBase.GetCurrentMethod().Name;
+            string Itemkey = "KeyDependency";
+            Product item = GetProduct();
+            string description = "Verify key dependency ";
+
+            try
+            {
+                int totalKeys = 3;
+
+                var masterKey1 = Guid.NewGuid().ToString();
+                var masterKey2 = Guid.NewGuid().ToString();
+                var masterKey3 = Guid.NewGuid().ToString();
+
+                _cache.Insert(masterKey1, item);
+                _cache.Insert(masterKey2, item);
+                _cache.Insert(masterKey3, item);
+
+                string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+
+                string keysArray = $"[\"{masterKey1}\",\"{masterKey2}\",\"{masterKey3}\"]";
+
+                string jsonString = @"{""dependency"":[{""key"":" + keysArray + "}]}";
+
+                var jsonObject = new JsonObject(jsonString);
+
+                QueryCommand queryCommand = new QueryCommand(query);
+                queryCommand.Parameters.Add("@key1", Itemkey);
+                queryCommand.Parameters.Add("@val", item);
+                queryCommand.Parameters.Add("@metadata", jsonObject);
+
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                
+
+                var cacheItem = _cache.GetCacheItem(Itemkey);
+
+                if (cacheItem == null)
+                    throw new Exception("item not inserted with key dependency");
+
+                if (cacheItem.Dependency == null)
+                    throw new Exception("key dependency is not added with cache item");
+
+                using (var keyDependency = cacheItem.Dependency.Dependencies.First() as KeyDependency )
+                {
+                    if (keyDependency.CacheKeys.Count() != totalKeys)
+                        throw new Exception("total master keys doesnot equal total given master keys");
+                }
+
+                //update master key
+                _cache.Remove(masterKey2);
+
+                if (_cache.GetCacheItem(Itemkey) != null)
                     throw new Exception($"Removing master key didnot triggered key dependency");
 
                 _report.AddPassedTestCase(methodName, description);
@@ -1004,13 +1241,17 @@ namespace QueriesTestApplication
             {
 
                 var masterKey = Guid.NewGuid().ToString();
-                cache.Insert(masterKey, item);
+                _cache.Insert(masterKey, item);
 
                 string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+                
 
+                string keysArray = $"\"[{masterKey}]\"";
+                                
+                string jsonString = "{\"dependency\":[{\"key\":" + keysArray + ", \"KeyDependencyType\" : \"Remove\"}]}";
 
-                // string jsonString = "{\"dependency\": [{\"key\": {\"key\":"+ $"\"{Itemkey}\"" + "}}]}";
-                string jsonString = "{\"dependency\": [{\"key\": {\"key\":" + $"\"{masterKey}\"" + ", \"KeyDependencyType\" : \"Remove\"}}]}";
+                KeyDependency a = new KeyDependency("s");
+
 
                 var jsonObject = new JsonObject(jsonString);
 
@@ -1019,9 +1260,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", item);
                 queryCommand.Parameters.Add("@metadata", jsonObject);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(Itemkey);
+                var cacheItem = _cache.GetCacheItem(Itemkey);
 
                 if (cacheItem == null)
                     throw new Exception("item not inserted with key dependency");
@@ -1030,14 +1271,14 @@ namespace QueriesTestApplication
                     throw new Exception("key dependency is not added with cache item");
 
                 //update master key
-                cache.Insert(masterKey, item);
+                _cache.Insert(masterKey, item);
 
-                if (cache.GetCacheItem(Itemkey) == null)
+                if (_cache.GetCacheItem(Itemkey) == null)
                     throw new Exception($"Updating master key triggerd the dependency");
 
-                cache.Remove(masterKey);
+                _cache.Remove(masterKey);
 
-                if (cache.GetCacheItem(Itemkey) != null)
+                if (_cache.GetCacheItem(Itemkey) != null)
                     throw new Exception($"Removing master key didnot triggered key dependency");
 
                 _report.AddPassedTestCase(methodName, description);
@@ -1064,7 +1305,7 @@ namespace QueriesTestApplication
             {
 
                 var masterKey = Guid.NewGuid().ToString();
-                cache.Insert(masterKey, item);
+                _cache.Insert(masterKey, item);
 
                 string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
                                
@@ -1079,9 +1320,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", item);
                 queryCommand.Parameters.Add("@metadata", jsonObject);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(Itemkey);
+                var cacheItem = _cache.GetCacheItem(Itemkey);
 
                 if (cacheItem == null)
                     throw new Exception("item not inserted with key dependency");
@@ -1090,9 +1331,9 @@ namespace QueriesTestApplication
                     throw new Exception("key dependency is not added with cache item"); 
 
                 //update master key
-                cache.Insert(masterKey, item);
+                _cache.Insert(masterKey, item);
 
-                if (cache.GetCacheItem(Itemkey) != null)
+                if (_cache.GetCacheItem(Itemkey) != null)
                     throw new Exception($"item still exists after updating the master key");
 
                  _report.AddPassedTestCase(methodName,description);
@@ -1134,12 +1375,12 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", item);
                 queryCommand.Parameters.Add("@metadata", jsonObject);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(Itemkey);
+                var cacheItem = _cache.GetCacheItem(Itemkey);
 
 
-                if (!(cacheItem.Dependency is SqlCacheDependency))
+                if (!(cacheItem.Dependency.Dependencies.First() is SqlCacheDependency))
                     throw new Exception($"registeres sql dependency but got {cacheItem.Dependency.GetType().FullName}");
 
                 // Explicitly make some change in DB
@@ -1166,7 +1407,7 @@ namespace QueriesTestApplication
 
 
                 // After changing in Db
-                var returned = cache.Get<Alachisoft.NCache.Sample.Data.Product>(Itemkey);
+                var returned = _cache.Get<Alachisoft.NCache.Sample.Data.Product>(Itemkey);
                 if (returned == null)
                 {
                     _report.AddPassedTestCase(methodName, "Success: Add SQL DB Dependency ");
@@ -1174,7 +1415,7 @@ namespace QueriesTestApplication
                 }
                 else
                 {
-                    throw new Exception("Failed: Add SQL DB Dependency ");
+                    throw new Exception("triggering DB Dependency didnot removed the item in cache");
                 }
 
             }
@@ -1206,7 +1447,7 @@ namespace QueriesTestApplication
         private void VerifyCustomDependency()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
-            cache.Clear();
+            _cache.Clear();
             string Itemkey = "KeyForCustomDependency";
             Product item = GetProduct();
             string ProviderName = "MyCustomDependencyProvider"; // configured in cache
@@ -1227,9 +1468,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", item);
                 queryCommand.Parameters.Add("@metadata", jsonObj);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(Itemkey);
+                var cacheItem = _cache.GetCacheItem(Itemkey);
 
                 if (!(cacheItem.Dependency is CustomDependency))
                     throw new Exception("custom dependency not registered");
@@ -1237,7 +1478,7 @@ namespace QueriesTestApplication
                 Console.WriteLine("Sleeping for 25 seconds to verify Custom dependency");
                 Thread.Sleep(25000);
 
-                cacheItem = cache.GetCacheItem(Itemkey);
+                cacheItem = _cache.GetCacheItem(Itemkey);
                 if (cacheItem == null)
                     _report.AddPassedTestCase(methodName, "Success: Add Custom Dependency ");
 
@@ -1264,7 +1505,7 @@ namespace QueriesTestApplication
         private void VerifyFileDependency()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
-            cache.Clear();
+            _cache.Clear();
             string Itemkey = "KeyForFileDependency";
             Product item = GetProduct();
 
@@ -1292,11 +1533,11 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", item);
                 queryCommand.Parameters.Add("@metadata", jsonObj);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 File.AppendAllText(filePath, "Modifying file to verify dependency");
 
-                var cacheItem = cache.GetCacheItem(Itemkey);
+                var cacheItem = _cache.GetCacheItem(Itemkey);
                 if (cacheItem == null)
                     _report.AddPassedTestCase(methodName, "Success: Add File Dependency ");
 
@@ -1316,7 +1557,7 @@ namespace QueriesTestApplication
         private void FileDependencyWithStartAfter()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
-            cache.Clear();
+            _cache.Clear();
             string Itemkey = "KeyForFileDependency";
             Product item = GetProduct();
 
@@ -1349,9 +1590,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", item);
                 queryCommand.Parameters.Add("@metadata", jsonObj);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(Itemkey);
+                var cacheItem = _cache.GetCacheItem(Itemkey);
                 var dependecy = cacheItem.Dependency as FileDependency;
 
                 if (dependecy.StartAfterTicks != startAfterTicks)
@@ -1359,7 +1600,7 @@ namespace QueriesTestApplication
 
                 File.AppendAllText(filePath, "Modifying file to verify dependency");
 
-                cacheItem = cache.GetCacheItem(Itemkey);
+                cacheItem = _cache.GetCacheItem(Itemkey);
                 if (cacheItem == null)
                     _report.AddPassedTestCase(methodName, "Success: Add File Dependency with start after");
                 else
@@ -1383,7 +1624,7 @@ namespace QueriesTestApplication
         private void VerifyResyncOption()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
-            cache.Clear();
+            _cache.Clear();
             string Itemkey = "KeyForResyncOption";
             Product item = GetProduct();
 
@@ -1403,9 +1644,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", item);
                 queryCommand.Parameters.Add("@metadata", jsonObj);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(Itemkey);
+                var cacheItem = _cache.GetCacheItem(Itemkey);
 
                 var options = cacheItem.ResyncOptions;
                 if (options == null || options.ResyncOnExpiration == false || options.ProviderName != providerName)
@@ -1432,7 +1673,7 @@ namespace QueriesTestApplication
         private void VerifyCacheItemVersion()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
-            cache.Clear();
+            _cache.Clear();
             string Itemkey = "KeyForCacheItemVersion";
             Product item = GetProduct();
 
@@ -1440,7 +1681,7 @@ namespace QueriesTestApplication
             {
                 string guidKey = Guid.NewGuid().ToString();
 
-                CacheItemVersion version = cache.Insert(guidKey, item);
+                CacheItemVersion version = _cache.Insert(guidKey, item);
                 ulong itemVersion = version.Version;
 
                 string query = "UPSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
@@ -1455,9 +1696,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", item);
                 queryCommand.Parameters.Add("@metadata", jsonObj);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(Itemkey);
+                var cacheItem = _cache.GetCacheItem(Itemkey);
 
                 if (cacheItem == null )
                     throw new Exception("Failure: Add item with item version ");
@@ -1488,7 +1729,7 @@ namespace QueriesTestApplication
         private void VerifySyncDependency()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
-            cache.Clear();
+            _cache.Clear();
             string Itemkey = "KeyForSyncDependency";
             Product item = GetProduct();
 
@@ -1509,9 +1750,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@val", item);
                 queryCommand.Parameters.Add("@metadata", jsonObj);
 
-                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = cache.GetCacheItem(Itemkey);
+                var cacheItem = _cache.GetCacheItem(Itemkey);
 
                 var syncDependency = cacheItem.SyncDependency;
 
@@ -1551,13 +1792,13 @@ namespace QueriesTestApplication
 
     public static class ExpirationTimes
     {
-        public static int SlidingExpirationSeconds = 10;
-        public static int AbosluteExpirationSeconds = 10;
+        public static int SlidingExpirationSeconds = 5;
+        public static int AbosluteExpirationSeconds = 5;
 
-        public static int DefaultAbsolute = 10;
+        public static int DefaultAbsolute = 5;
         public static int DefaultAbsoluteLonger = 10;
 
-        public static int DefaultSliding = 10;
+        public static int DefaultSliding = 5;
         public static int DefaultSlidingLonger = 10;
 
     }

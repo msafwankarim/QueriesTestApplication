@@ -11,6 +11,7 @@ namespace QueriesTestApplication.Utils
     {
 
         private static string _testOperationExceptionMessage = "Specified value not equals to test value";
+        private static string _incorrectMeta = "Incorrect meta information defined. Failed to parse ";
 
         public static string TestOperationExceptionMessage { get => _testOperationExceptionMessage; }
 
@@ -50,6 +51,11 @@ namespace QueriesTestApplication.Utils
 
         #region -------------------------- Exception Validations -------------------------- 
 
+        public static bool IsInCorrectMetaException(Exception ex)
+        {
+            return ex.Message.Contains(_incorrectMeta);
+        } 
+        
         public static bool IsTargetNotFoundException(Exception ex)
         {
             return ex.Message.Contains("Unable to find target location at the specified segment");

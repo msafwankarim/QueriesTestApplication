@@ -12,3 +12,19 @@ this string is properly serialized by newtonsoft but fails with ncache json obje
   while getting from indexer notation of arraaya what to do 
 
 set name = aqib will throw unexpected chacracter encountered exception.(\"aqib\" is correct )
+
+no summary for query service API 
+
+
+        
+        public KeyDependency(string[] keys)        
+        public KeyDependency(string[] keys, DateTime startAfter)      
+        public KeyDependency(string[] keys, KeyDependencyType keyDependencyType)        
+        public KeyDependency(string[] keys, DateTime startAfter, KeyDependencyType keyDependencyType)
+        
+test with binary cache
+test without query indexing
+dedicated call
+
+Update statement is only supported on JSON serialized cache. exception in insert query
+           
