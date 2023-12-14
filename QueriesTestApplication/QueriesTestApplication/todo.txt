@@ -1,30 +1,36 @@
 Is aggregate dependency supported. how will i add multiple dependencies in aggregate dependency
-how can i pass array of key\file dependency. (we can pass)
 extensible dependency custom dependency
 cache sync dependency also requires id password and server info how can i pass that
+
+        public CacheSyncDependency(string remoteCacheId, string key)   
+        public CacheSyncDependency(string remoteCacheId, string key, ServerInfo serverInfo) 
+        public CacheSyncDependency(string remoteCacheId, string key, string userId, byte[] password)
+        public CacheSyncDependency(string remoteCacheId, string key, ServerInfo serverInfo, Credentials credentials )
+
 test on all topologies and binary cache
-
-var order = new Order { OrderID = 10, ShipCity = "rawalpindi\\Islamabad", ShipCountry = "Pakistan\\ASia" };
-this string is properly serialized by newtonsoft but fails with ncache json object 
-  JsonValueBase.Parse(jsonObject.ToString());
-
-  I have added value in JsonArray with escape sequences. WHile removing value should i add escape sequences to the value
-  while getting from indexer notation of arraaya what to do 
 
 set name = aqib will throw unexpected chacracter encountered exception.(\"aqib\" is correct )
 
 no summary for query service API 
-
-
         
         public KeyDependency(string[] keys)        
         public KeyDependency(string[] keys, DateTime startAfter)      
         public KeyDependency(string[] keys, KeyDependencyType keyDependencyType)        
         public KeyDependency(string[] keys, DateTime startAfter, KeyDependencyType keyDependencyType)
+          
+        public FileDependency(string fileName)   
+        public FileDependency(string[] fileNames)  
+        public FileDependency(string fileName, DateTime startAfter)        
+        public FileDependency(string[] fileNames, DateTime startAfter)
+       
+
+5) Test Case VerifyResyncOption FAILED due to Reason Incorrect meta information defined.
+6) Test Case VerifyCacheItemVersion FAILED due to Reason Incorrect meta information defined.
+7) Test Case VerifySyncDependency FAILED due to Reason Incorrect meta information defined. Failed to parse 'CustomDependency' metadata in the given SQL.
         
 test with binary cache
 test without query indexing
 dedicated call
-
+ 
 Update statement is only supported on JSON serialized cache. exception in insert query
-           
+         

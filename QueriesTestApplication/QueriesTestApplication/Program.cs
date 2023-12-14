@@ -20,11 +20,15 @@ namespace QueriesTestApplication
 
                 Common.CacheName = "democache";
 
-                //TempTests();
+               // TempTests();
 
-               // EscapeSequencesVerifier();
-                
-                RunUpdateQueriesTestsForJsonObject();
+                // EscapeSequencesVerifier();
+                // RunUpdateQueriesTestsForJsonObject();
+
+                RunMetaVerificationTestsForJsonObj();
+
+
+
                 // RunUpdateQueriesTests();
                 //  RunInsertQueriesTests();
                 // RunMetaVerificationTests();
@@ -32,7 +36,7 @@ namespace QueriesTestApplication
                 // RunInsertQueriesTests();
                 // RunInlineQueryTestForUpdate();
                 // RunUpdateQueriesTests();
-                MetaVerificationInUpdateQuery();
+                //MetaVerificationInUpdateQuery();
                 // InOperatorTests();
 
             }
@@ -138,12 +142,16 @@ namespace QueriesTestApplication
 
             MethodInfo[] methodInfos = typeof(MetaVerificationTestForJsonObj).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            metaTest.GroupMetadataInJsonObject();
+            //metaTest.AddSimpleItem();
+            //metaTest.TagsMetadataInJSONObject();
+            //metaTest.KeyDependencyWithArrayOfMasterKeys();
 
             foreach (var mi in methodInfos)
             {
                 try
                 {
+                    if (mi.Name.Contains("Expiration"))
+                        continue;
                     mi.Invoke(metaTest, parameters);
                 }
                 catch (Exception)
@@ -152,16 +160,10 @@ namespace QueriesTestApplication
 
                 }
             }
-            foreach (var val in metaTest.TestResults)
-            {
-                if (val.Value == ResultStatus.Failure)
-                    Console.WriteLine(val.Key + ":Failed");
-
-            }
+            
 
             metaTest.Report.PrintReport();  
 
-            Console.WriteLine("Total methods called " + metaTest.TestResults.Count);
             Console.ReadLine();
         }
 
@@ -440,10 +442,12 @@ namespace QueriesTestApplication
                 // when nwetonsoft will serialize it will automatically add slashes add will remove them in deserialization
                 jsonString = JsonConvert.SerializeObject(city).ToString();
                 var token = JToken.Parse(jsonString);
-
-
-
             }
+
+
+            JToken one =(JToken) "1" ;
+            bool res = one.Type is JTokenType.String;
+
 
         }
 

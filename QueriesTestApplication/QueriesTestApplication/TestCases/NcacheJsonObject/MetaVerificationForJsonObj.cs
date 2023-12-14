@@ -28,7 +28,9 @@ namespace QueriesTestApplication
     {
         private readonly ICache _cache;
         private readonly Report _report;
-        private readonly int _cleanIntervalSeconds = 5; 
+        private readonly int _cleanIntervalSeconds = 5;
+
+        private int DependencyWaitTime  { get => (_cleanIntervalSeconds + 1) * 1000; }
 
         public Report Report { get => _report; }
 
@@ -38,14 +40,13 @@ namespace QueriesTestApplication
             _report = new Report(nameof(MetaVerificationTestForJsonObj));
         }
 
-
         public void AddSimpleItem()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
                 _cache.Clear();
-               
+
                 string key1 = "abc";
                 var val = GetProduct();
 
@@ -64,7 +65,7 @@ namespace QueriesTestApplication
                     throw new Exception("item added and obtained is not same");
 
 
-                 _report.AddPassedTestCase(methodName, "adding and getting simple product");
+                _report.AddPassedTestCase(methodName, "adding and getting simple product");
 
 
             }
@@ -588,7 +589,7 @@ namespace QueriesTestApplication
 
                 MetaData.AddAttribute("expiration", expiration);
 
-                
+
 
 
                 string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
@@ -657,7 +658,7 @@ namespace QueriesTestApplication
 
                 MetaData.AddAttribute("expiration", expiration);
 
-              
+
                 string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
 
                 QueryCommand queryCommand = new QueryCommand(query);
@@ -724,7 +725,7 @@ namespace QueriesTestApplication
 
                 MetaData.AddAttribute("expiration", expiration);
 
-               
+
 
                 string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
 
@@ -867,7 +868,7 @@ namespace QueriesTestApplication
                     if (ex.Message.Contains("expiration") && Helper.IsInCorrectMetaException(ex))
                         _report.AddPassedTestCase(methodName, "add wrong meta in query");
                     else
-                        throw;       
+                        throw;
                 }
 
                 throw new Exception("Didnot get exception in wrong expiration");
@@ -934,7 +935,7 @@ namespace QueriesTestApplication
 
         #region --------------------------------- Tags ---------------------------------
 
-        public void AddTagMetadataInJSONObject()
+        public void TestTagMetadataWithByAnyTag()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
@@ -944,6 +945,54 @@ namespace QueriesTestApplication
                 var MetaData = new JsonObject();
                 JsonArray tags = new JsonArray();
                 tags.Add("Important Product");
+
+                MetaData.AddAttribute("tags", tags);
+
+                string key1 = "abc";
+                var val = GetProduct();
+
+                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                QueryCommand queryCommand = new QueryCommand(query);
+
+                queryCommand.Parameters.Add("@key1", key1);
+                queryCommand.Parameters.Add("@val", val);
+                queryCommand.Parameters.Add("@metadata", MetaData);
+
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                Tag[] SearchTags = new Tag[2] { new Tag("Important Product"), new Tag("Imported Product") };
+
+                _ = _cache.Get<JsonObject>(key1);
+                _ = _cache.Get<Product>(key1);
+
+                IDictionary<string, Product> data = _cache.SearchService.GetByTags<Product>(SearchTags, TagSearchOptions.ByAnyTag);
+
+                if (data.Count > 0)
+                    _report.AddPassedTestCase(methodName, "Success: Add TagsMetaData in JSON object");
+                else
+                    throw new Exception("Failure: Add TagsMetaData in JSON object");
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+        }
+
+        public void TestTagMetadataWithByAllTag()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                _cache.Clear();
+
+                var MetaData = new JsonObject();
+                JsonArray tags = new JsonArray();
+                tags.Add("Important Product");
+                tags.Add("Imported Product");
 
                 MetaData.AddAttribute("tags", tags);
 
@@ -1015,10 +1064,10 @@ namespace QueriesTestApplication
 
                 IDictionary<string, Product> data = _cache.SearchService.GetByTags<Product>(SearchTags, TagSearchOptions.ByAllTags);
 
-                if (data.Count > 0)                
-                    _report.AddPassedTestCase(methodName, "Success: Add TagsMetaData in JSON object");                
-                else                
-                    throw new Exception("Failure: Add TagsMetaData in JSON object");                
+                if (data.Count > 0)
+                    _report.AddPassedTestCase(methodName, "Success: Add TagsMetaData in JSON object");
+                else
+                    throw new Exception("Failure: Add TagsMetaData in JSON object");
 
             }
             catch (Exception ex)
@@ -1081,7 +1130,7 @@ namespace QueriesTestApplication
 
                 var Attributes = cacheItem.NamedTags;
 
-                if (Attributes.Contains("Discount") && Attributes.Contains("FlashDiscount") && Attributes.Contains("Percentage") )
+                if (Attributes.Contains("Discount") && Attributes.Contains("FlashDiscount") && Attributes.Contains("Percentage"))
                 {
                     _report.AddPassedTestCase(methodName, "Success: Add NameTagMetaData in JSON object");
                 }
@@ -1121,8 +1170,8 @@ namespace QueriesTestApplication
 
                 string keysArray = $"[\"{masterKey}\"]";
                 JsonArray array = new JsonArray(keysArray);
-                
-                string jsonString = @"{""dependency"":[{""key"":"+keysArray+"}]}";
+
+                string jsonString = @"{""dependency"":[{""key"":" + keysArray + "}]}";
 
                 var jsonObject = new JsonObject(jsonString);
 
@@ -1195,7 +1244,7 @@ namespace QueriesTestApplication
 
                 var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                
+
 
                 var cacheItem = _cache.GetCacheItem(Itemkey);
 
@@ -1205,7 +1254,7 @@ namespace QueriesTestApplication
                 if (cacheItem.Dependency == null)
                     throw new Exception("key dependency is not added with cache item");
 
-                using (var keyDependency = cacheItem.Dependency.Dependencies.First() as KeyDependency )
+                using (var keyDependency = cacheItem.Dependency.Dependencies.First() as KeyDependency)
                 {
                     if (keyDependency.CacheKeys.Count() != totalKeys)
                         throw new Exception("total master keys doesnot equal total given master keys");
@@ -1244,10 +1293,10 @@ namespace QueriesTestApplication
                 _cache.Insert(masterKey, item);
 
                 string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
-                
+
 
                 string keysArray = $"\"[{masterKey}]\"";
-                                
+
                 string jsonString = "{\"dependency\":[{\"key\":" + keysArray + ", \"KeyDependencyType\" : \"Remove\"}]}";
 
                 KeyDependency a = new KeyDependency("s");
@@ -1308,11 +1357,11 @@ namespace QueriesTestApplication
                 _cache.Insert(masterKey, item);
 
                 string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
-                               
 
-               // string jsonString = "{\"dependency\": [{\"key\": {\"key\":"+ $"\"{Itemkey}\"" + "}}]}";
-                string jsonString = "{\"dependency\": [{\"key\": {\"key\":"+ $"\"{masterKey}\"" + ", \"KeyDependencyType\" : \"UpdateOrRemove\"}}]}";
-                
+
+                // string jsonString = "{\"dependency\": [{\"key\": {\"key\":"+ $"\"{Itemkey}\"" + "}}]}";
+                string jsonString = "{\"dependency\": [{\"key\": {\"key\":" + $"\"{masterKey}\"" + ", \"KeyDependencyType\" : \"UpdateOrRemove\"}}]}";
+
                 var jsonObject = new JsonObject(jsonString);
 
                 QueryCommand queryCommand = new QueryCommand(query);
@@ -1328,7 +1377,7 @@ namespace QueriesTestApplication
                     throw new Exception("item not inserted with key dependency");
 
                 if (cacheItem.Dependency == null)
-                    throw new Exception("key dependency is not added with cache item"); 
+                    throw new Exception("key dependency is not added with cache item");
 
                 //update master key
                 _cache.Insert(masterKey, item);
@@ -1336,9 +1385,9 @@ namespace QueriesTestApplication
                 if (_cache.GetCacheItem(Itemkey) != null)
                     throw new Exception($"item still exists after updating the master key");
 
-                 _report.AddPassedTestCase(methodName,description);
+                _report.AddPassedTestCase(methodName, description);
 
-               
+
 
             }
             catch (Exception ex)
@@ -1354,13 +1403,15 @@ namespace QueriesTestApplication
         #endregion
 
 
-        #region --------------------------------- Db Dependency ------------------------
+        #region --------------------------------- SQL Dependency ------------------------
 
-        private void VerifyDbDependency()
+        private void VerifySQLDependency()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
             string Itemkey = "SqlDBDependency";
             Product item = GetProduct();
+
+            _cache.Clear();
 
             try
             {
@@ -1377,7 +1428,7 @@ namespace QueriesTestApplication
 
                 var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var cacheItem = _cache.GetCacheItem(Itemkey);
+                CacheItem cacheItem = _cache.GetCacheItem(Itemkey);
 
 
                 if (!(cacheItem.Dependency.Dependencies.First() is SqlCacheDependency))
@@ -1433,24 +1484,14 @@ namespace QueriesTestApplication
 
 
         #region --------------------------------- Custom Dependency --------------------
-
-        // doubt...........
-
-        /// <summary>
-        /// Adds an Item in cache with custom dependency.
-        /// Then verifies if the item is still in cache or not after 25 seconds
-        /// </summary>
-        /// <remarks>
-        /// The custom dependecy configured is that the  item expires after 10 seconds.
-        /// (i.e hasChanged returns true after 10 seconds)
-        /// </remarks>
-        private void VerifyCustomDependency()
+            
+        private void VerifyExtensibleDependency()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
             _cache.Clear();
             string Itemkey = "KeyForCustomDependency";
             Product item = GetProduct();
-            string ProviderName = "MyCustomDependencyProvider"; // configured in cache
+            string ProviderName = "custom"; 
 
             try
             {
@@ -1472,15 +1513,118 @@ namespace QueriesTestApplication
 
                 var cacheItem = _cache.GetCacheItem(Itemkey);
 
-                if (!(cacheItem.Dependency is CustomDependency))
-                    throw new Exception("custom dependency not registered");
+                if (!(cacheItem.Dependency.Dependencies.FirstOrDefault() is  CustomDependency))
+                    throw new Exception("Extensible dependency not registered");
 
-                Console.WriteLine("Sleeping for 25 seconds to verify Custom dependency");
-                Thread.Sleep(25000);
+                Console.WriteLine($"Sleeping for {DependencyWaitTime/1000} seconds to verify extensible dependency");
+                Thread.Sleep(DependencyWaitTime);
 
                 cacheItem = _cache.GetCacheItem(Itemkey);
                 if (cacheItem == null)
-                    _report.AddPassedTestCase(methodName, "Success: Add Custom Dependency ");
+                    _report.AddPassedTestCase(methodName, "Success: Add extensible Dependency ");
+
+                else
+                    throw new Exception("Failure: Add extensible Dependency ");
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+
+
+        }
+
+        private void VerifyBulkExtensibleDependency()
+        {
+            string methodName = MethodBase.GetCurrentMethod().Name;
+            _cache.Clear();
+            string Itemkey = "KeyForBulkExtensibleDependency";
+            Product item = GetProduct();
+            string ProviderName = "bulkDependencyProvider";
+
+            try
+            {
+                string AddItemWithDependencyQuery = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                var JsonForDependency = "{\"dependency\": [{\"custom\":" +
+                    " {\"providername\": \"" + ProviderName + "\"," +
+                    "\"param\":{\"id\":\"101\"," +
+                    "\"connectionstring\":\"NoConnectionStringForTesting\"}}}]}";
+
+                var jsonObj = new JsonObject(JsonForDependency);
+
+                QueryCommand queryCommand = new QueryCommand(AddItemWithDependencyQuery);
+                queryCommand.Parameters.Add("@key1", Itemkey);
+                queryCommand.Parameters.Add("@val", item);
+                queryCommand.Parameters.Add("@metadata", jsonObj);
+
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var cacheItem = _cache.GetCacheItem(Itemkey);
+
+                if (!(cacheItem.Dependency.Dependencies.FirstOrDefault() is CustomDependency))
+                    throw new Exception("bulk extensible dependency not registered");
+
+                Console.WriteLine($"Sleeping for {DependencyWaitTime / 1000} seconds to verify bulk extensible dependency");
+                Thread.Sleep(DependencyWaitTime);
+
+                cacheItem = _cache.GetCacheItem(Itemkey);
+                if (cacheItem == null)
+                    _report.AddPassedTestCase(methodName, "Success: Add bulk extensible Dependency ");
+
+                else
+                    throw new Exception("Failure: Add bulk extensible Dependency ");
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+
+
+        }
+
+        private void VerifyNotifyExtensibleDependency()
+        {
+            string methodName = MethodBase.GetCurrentMethod().Name;
+            _cache.Clear();
+            string Itemkey = "KeyForNotifyExtensibleDependency";
+            Product item = GetProduct();
+            string ProviderName = "notifyDependencyProvider";
+
+            try
+            {
+                string AddItemWithDependencyQuery = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                var JsonForDependency = "{\"dependency\": [{\"custom\":" +
+                    " {\"providername\": \"" + ProviderName + "\"," +
+                    "\"param\":{\"id\":\"101\"," +
+                    "\"connectionstring\":\"NoConnectionStringForTesting\"}}}]}";
+
+                var jsonObj = new JsonObject(JsonForDependency);
+
+                QueryCommand queryCommand = new QueryCommand(AddItemWithDependencyQuery);
+                queryCommand.Parameters.Add("@key1", Itemkey);
+                queryCommand.Parameters.Add("@val", item);
+                queryCommand.Parameters.Add("@metadata", jsonObj);
+
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var cacheItem = _cache.GetCacheItem(Itemkey);
+
+                if (!(cacheItem.Dependency.Dependencies.FirstOrDefault() is CustomDependency ))
+                    throw new Exception("notify extensible dependency not registered");
+
+                int waitTime = _cleanIntervalSeconds + 1;
+                Console.WriteLine($"Sleeping for {DependencyWaitTime /100 } seconds to verify notify extensible dependency");
+                Thread.Sleep(DependencyWaitTime);
+
+                cacheItem = _cache.GetCacheItem(Itemkey);
+                if (cacheItem == null)
+                    _report.AddPassedTestCase(methodName, "Success: Add NotifyExtensible Dependency ");
 
                 else
                     throw new Exception("Failure: Add Custom Dependency ");
@@ -1504,6 +1648,8 @@ namespace QueriesTestApplication
 
         private void VerifyFileDependency()
         {
+                       
+
             string methodName = MethodBase.GetCurrentMethod().Name;
             _cache.Clear();
             string Itemkey = "KeyForFileDependency";
@@ -1512,7 +1658,7 @@ namespace QueriesTestApplication
             try
             {
                 string filePath = "C:\\dependencyFile.txt";
-                File.AppendAllText(filePath, "This file is used to verify file dependency in ncache by queries.");
+                File.AppendAllText(filePath, $"\n {methodName} => This file is used to verify file dependency in ncache by queries. {DateTime.Now}");
 
                 string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
 
@@ -1535,7 +1681,53 @@ namespace QueriesTestApplication
 
                 var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                File.AppendAllText(filePath, "Modifying file to verify dependency");
+                File.AppendAllText(filePath, $"\n {methodName} => Modifying file to verify dependency at time : {DateTime.Now}");
+
+                var cacheItem = _cache.GetCacheItem(Itemkey);
+                if (cacheItem == null)
+                    _report.AddPassedTestCase(methodName, "Success: Add File Dependency ");
+
+                else
+                    throw new Exception("Failure: Add File Dependency ");
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+
+
+        }
+
+        private void VerifyFileDependencyWithArrayOfFiles()
+        {
+            string methodName = MethodBase.GetCurrentMethod().Name;
+            _cache.Clear();
+            string Itemkey = "KeyForFileDependency";
+            Product item = GetProduct();
+
+            try
+            {
+                string filePath = "C:\\\\dependencyFile.txt";
+                File.AppendAllText(filePath, $"\n {methodName} => This file is used to verify file dependency in ncache by queries. {DateTime.Now}");
+
+                string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+                //var jsonString = "{\"dependency\": [{\"file\": {\"fileName\":" + $"\"{filePath}\"" + "}}]}";
+                var jsonString = "{\"dependency\": [{\"file\": [" + $"\"{filePath}\"" + "]}]}";
+
+                var jsonObj = new JsonObject(jsonString);
+
+
+                QueryCommand queryCommand = new QueryCommand(query);
+                queryCommand.Parameters.Add("@key1", Itemkey);
+                queryCommand.Parameters.Add("@val", item);
+                queryCommand.Parameters.Add("@metadata", jsonObj);
+
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                File.AppendAllText(filePath, $"\n {methodName} => Modifying file to verify dependency at time : {DateTime.Now}");
 
                 var cacheItem = _cache.GetCacheItem(Itemkey);
                 if (cacheItem == null)
@@ -1566,7 +1758,7 @@ namespace QueriesTestApplication
                 int startAfterTicks = 5;
 
                 string filePath = "C:\\dependencyFile.txt";
-                File.AppendAllText(filePath, "This file is used to verify file dependency in ncache by queries.");
+                File.AppendAllText(filePath, $"\n {methodName} => This file is used to verify file dependency in ncache by queries. {DateTime.Now}");
 
                 string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
 
@@ -1581,7 +1773,7 @@ namespace QueriesTestApplication
                 // jsonObj.AddAttribute("dependency", "file");
                 //jsonObj.AddAttribute("fileName", filePath);
 
-                 //FileDependency 
+                //FileDependency 
                 // SqlCacheDependency 
 
 
@@ -1598,7 +1790,7 @@ namespace QueriesTestApplication
                 if (dependecy.StartAfterTicks != startAfterTicks)
                     throw new Exception("startAfter ticks do not match");
 
-                File.AppendAllText(filePath, "Modifying file to verify dependency");
+                File.AppendAllText(filePath, $"\n {methodName} => Modifying file to verify dependency {DateTime.Now}");
 
                 cacheItem = _cache.GetCacheItem(Itemkey);
                 if (cacheItem == null)
@@ -1630,7 +1822,7 @@ namespace QueriesTestApplication
 
             try
             {
-                string providerName = "NoPrvider";
+                string providerName = "NoProvider";
                 string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
 
                 var jsonObj = new JsonObject();
@@ -1638,6 +1830,7 @@ namespace QueriesTestApplication
                 //jsonObj.AddAttribute("ResyncOptions", "true");
                 jsonObj.AddAttribute("providerName", providerName);
 
+                
 
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@key1", Itemkey);
@@ -1700,12 +1893,12 @@ namespace QueriesTestApplication
 
                 var cacheItem = _cache.GetCacheItem(Itemkey);
 
-                if (cacheItem == null )
+                if (cacheItem == null)
                     throw new Exception("Failure: Add item with item version ");
 
-                if(cacheItem.Version.Version == itemVersion)
+                if (cacheItem.Version.Version == itemVersion)
                     throw new Exception($"Cache item version {itemVersion} is not updated");
-                
+
                 _report.AddPassedTestCase(methodName, "Success: Add item with item version ");
 
 
@@ -1735,15 +1928,15 @@ namespace QueriesTestApplication
 
             try
             {
-                
-                
-                string remoteCacheId  = "remoteCache";
-                    
+
+
+                string remoteCacheId = "remoteCache";
+
                 string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
 
                 var jsonString = "{\"dependency\": [{\"syncdependency\": {\"remoteCache\":" + $"\"{remoteCacheId}\"" + ",\"key\":" + $"\"{Itemkey}\"" + " }}]}";
-                                
-                var jsonObj = new JsonObject(jsonString);               
+
+                var jsonObj = new JsonObject(jsonString);
 
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@key1", Itemkey);
@@ -1756,16 +1949,16 @@ namespace QueriesTestApplication
 
                 var syncDependency = cacheItem.SyncDependency;
 
-                if (syncDependency == null)                
-                   throw new Exception("Failure: syncDependency is not registers with query");
+                if (syncDependency == null)
+                    throw new Exception("Failure: syncDependency is not registers with query");
 
                 if (syncDependency.Key != Itemkey)
                     throw new Exception("Failure: key is not equal to rgistered key");
 
                 if (syncDependency.CacheId != remoteCacheId)
                     throw new Exception("Failure: CacheId is not equal to registerd cache id");
-                
-                
+
+
                 _report.AddPassedTestCase(methodName, "Success: Add File Dependency ");
 
 
