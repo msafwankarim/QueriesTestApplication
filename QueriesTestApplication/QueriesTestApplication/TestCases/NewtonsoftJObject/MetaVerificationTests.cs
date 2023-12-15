@@ -35,6 +35,7 @@ namespace QueriesTestApplication
         {            
             cache = CacheManager.GetCache(Common.CacheName);
             testResults = new Dictionary<string, ResultStatus>();
+            _report = new Report(nameof(MetaVerificationTests));
 
         }
         
@@ -252,7 +253,8 @@ namespace QueriesTestApplication
             cache.Clear();
             string Itemkey = "KeyForCustomDependency";
             Product item = GetProduct();
-            string ProviderName = "MyCustomDependencyProvider"; // configured in cache
+            string ProviderName = "custom";
+
 
             try
             {
@@ -271,8 +273,9 @@ namespace QueriesTestApplication
 
                 var result = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Console.WriteLine("Sleeping for 25 seconds to verify Custom dependency");
-                Thread.Sleep(25000);
+                Console.WriteLine("Sleeping for 5 seconds to verify Custom dependency");
+                Thread.Sleep(5
+                    );
 
                 var cacheItem = cache.GetCacheItem(Itemkey);
                 if (cacheItem == null) 
@@ -402,10 +405,10 @@ namespace QueriesTestApplication
             }
             catch (Exception ex)
             {
-                _report.AddFailedTestCase(methodName, ex);
-
-                Console.WriteLine("Success: Add Invalid Metadata in JObject");
-                testResults.Add(methodName, ResultStatus.Success);
+                if(ex.Message.Contains("Invalid JSON string provided"))
+                    _report.AddPassedTestCase(methodName, "Success: Add Invalid Metadata in JObject");
+                else
+                   _report.AddFailedTestCase(methodName, ex);                
             }
         }
 

@@ -26,6 +26,7 @@ namespace QueriesTestApplication
             testResults = new Dictionary<string, ResultStatus>();
             testResults1 = new Dictionary<string, TestResult>();
             productList = new List<Product>();
+            _report = new Report(nameof(InsertQueriesTestForJsonObj));
         }
 
         public Dictionary<string, ResultStatus> TestResults

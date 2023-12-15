@@ -7,11 +7,15 @@ using System;
 using System.Reflection;
 using QueriesTestApplication.Utils;
 using QueriesTestApplication.VerifyEscapeSequences;
+using System.Diagnostics.CodeAnalysis;
 
 namespace QueriesTestApplication
 {
     class Program
     {
+        public static bool OneGo { get; set; } = true;
+        public static bool DonotSkipAnyCase { get;  set; } = true; 
+
         static void Main(string[] args)
         {
             try
@@ -20,23 +24,31 @@ namespace QueriesTestApplication
 
                 Common.CacheName = "democache";
 
-               // TempTests();
+                // TempTests();
 
                 // EscapeSequencesVerifier();
-                // RunUpdateQueriesTestsForJsonObject();
+
 
                 RunMetaVerificationTestsForJsonObj();
 
+                ///RunMetaVerificationTests();
 
-
-                // RunUpdateQueriesTests();
-                //  RunInsertQueriesTests();
-                // RunMetaVerificationTests();
-                // RunInlineQueryTests();
-                // RunInsertQueriesTests();
                 // RunInlineQueryTestForUpdate();
                 // RunUpdateQueriesTests();
-                //MetaVerificationInUpdateQuery();
+
+                // RunInsertQueriesTests();
+
+
+                //RunMetaVerificationTestsForJsonObj();
+                //RunUpdateQueriesTestsForJsonObject();
+
+                // RunUpdateQueriesTests();
+                // RunInsertQueriesTests();
+                // RunMetaVerificationTests();
+                // RunInlineQueryTests();
+                // RunInlineQueryTestForUpdate();
+                // RunUpdateQueriesTests();
+                // MetaVerificationInUpdateQuery();
                 // InOperatorTests();
 
             }
@@ -48,16 +60,16 @@ namespace QueriesTestApplication
 
         }
 
-       
+
 
         private static void RunOnAllTopologies()
         {
             string[] CacheNames = new string[4] { "democache1", "Partition", "ReplicatedCache", "MirrorCache" };
-           for (int i = 0; i < 4; i++)
-           {
+            for (int i = 0; i < 4; i++)
+            {
                 Console.WriteLine($"\n\n ****  Running TestCases on  {CacheNames[i] } ****");
 
-                Common.CacheName=CacheNames[i];               
+                Common.CacheName = CacheNames[i];
                 RunMetaVerificationTests();
                 RunInlineQueryTests();
                 RunInsertQueriesTests();
@@ -67,10 +79,10 @@ namespace QueriesTestApplication
                 Console.WriteLine($"\n\n **** Testing done on {CacheNames[i] }. Press any key to continue ");
                 Console.ReadKey();
                 Console.Clear();
-           }
-           
+            }
+
         }
-              
+
         private static void RunInlineQueryTests()
         {
             object[] parameters = null;
@@ -99,6 +111,7 @@ namespace QueriesTestApplication
             Console.ReadLine();
         }
 
+
         #region -------------------------- MetaVerification Tests  --------------------------
 
         private static void RunMetaVerificationTests()
@@ -109,7 +122,7 @@ namespace QueriesTestApplication
 
             MethodInfo[] methodInfos = typeof(MetaVerificationTests).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-           
+
 
             foreach (var mi in methodInfos)
             {
@@ -117,11 +130,13 @@ namespace QueriesTestApplication
                 {
                     mi.Invoke(metaTest, parameters);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    
+                    Console.WriteLine("unhandeled exception" + $"{ex.Message}");
+
                 }
             }
+
             foreach (var val in metaTest.TestResults)
             {
                 if (val.Value == ResultStatus.Failure)
@@ -131,9 +146,11 @@ namespace QueriesTestApplication
             Console.WriteLine("Total methods called " + metaTest.TestResults.Count);
             metaTest.Reprt.PrintReport();
             RunMetaVerificationTestsForJsonObj();
-            Console.ReadLine();
-        } 
-        
+            PromptInputIfNeeded();
+        }
+
+
+
         private static void RunMetaVerificationTestsForJsonObj()
         {
             object[] parameters = null;
@@ -142,29 +159,32 @@ namespace QueriesTestApplication
 
             MethodInfo[] methodInfos = typeof(MetaVerificationTestForJsonObj).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            //metaTest.AddSimpleItem();
-            //metaTest.TagsMetadataInJSONObject();
-            //metaTest.KeyDependencyWithArrayOfMasterKeys();
 
             foreach (var mi in methodInfos)
             {
                 try
                 {
-                    if (mi.Name.Contains("Expiration"))
-                        continue;
+                    if (!DonotSkipAnyCase)
+                    {
+                        if (mi.Name.Contains("Expiration"))
+                            continue;
+
+                    }
+
                     mi.Invoke(metaTest, parameters);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Console.WriteLine("unhandeled exception" + $"{ex.Message}");
 
 
                 }
             }
-            
 
-            metaTest.Report.PrintReport();  
 
-            Console.ReadLine();
+            metaTest.Report.PrintReport();
+
+
         }
 
         private static void MetaVerificationInUpdateQuery()
@@ -174,7 +194,7 @@ namespace QueriesTestApplication
             Common.PrintClassName(nameof(MetaVerificationInUpdateQuery));
 
             MethodInfo[] methodInfos = typeof(MetaVerificationInUpdateQuery).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-         
+
             foreach (var mi in methodInfos)
             {
                 try
@@ -186,13 +206,14 @@ namespace QueriesTestApplication
 
 
                 }
-            }           
+            }
 
             metaTest.Report.PrintReport();
-            Console.ReadLine();
+            PromptInputIfNeeded();
         }
 
         #endregion
+
 
         #region  --------------------------  UpdateQuery Tests --------------------------
 
@@ -226,19 +247,19 @@ namespace QueriesTestApplication
             inlineQuerytests.Report.PrintReport();
 
             Console.WriteLine("Total methods called " + inlineQuerytests.testResults.Count);
-            Console.ReadLine();
+            PromptInputIfNeeded();
         }
 
         private static void RunUpdateQueriesTests()
         {
             object[] parameters = null;
-            UpdateQueriesTest updateQueriesTest = new UpdateQueriesTest(); 
+            UpdateQueriesTest updateQueriesTest = new UpdateQueriesTest();
             Common.PrintClassName("UpdateQueriesTest");
-           
-            MethodInfo[] methodInfos = typeof(UpdateQueriesTest).GetMethods(BindingFlags.NonPublic |BindingFlags.Public | BindingFlags.Instance);
+
+            MethodInfo[] methodInfos = typeof(UpdateQueriesTest).GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
 
 
-              updateQueriesTest.SetArrayAtZerothIndex();
+            updateQueriesTest.SetArrayAtZerothIndex();
             //updateQueriesTest.AddArrayAtSpecificIndex();
             // updateQueriesTest.SetOperationUsingJObject0();
 
@@ -246,7 +267,7 @@ namespace QueriesTestApplication
             {
                 try
                 {
-                
+
                     mi.Invoke(updateQueriesTest, parameters);
                 }
                 catch (Exception ex)
@@ -269,7 +290,8 @@ namespace QueriesTestApplication
 
             RunUpdateQueriesTestsForJsonObject();
 
-            Console.ReadLine();
+            PromptInputIfNeeded();
+
         }
 
         private static void RunUpdateQueriesTestsForJsonObject()
@@ -294,7 +316,7 @@ namespace QueriesTestApplication
 
                 }
 
-               
+
             }
             foreach (var val in updateQueriesTest.TestResults)
             {
@@ -304,10 +326,12 @@ namespace QueriesTestApplication
             }
 
             updateQueriesTest.Report.PrintReport();
-            Console.ReadLine();
+            PromptInputIfNeeded();
+
         }
 
         #endregion
+
 
         #region -------------------------- InsertQuery tests --------------------------
         private static void RunInsertQueriesTests()
@@ -316,12 +340,12 @@ namespace QueriesTestApplication
             InsertQueriesTest insertQueriesTest = new InsertQueriesTest();
             Common.PrintClassName("InsertQueriesTest");
 
-            
+
 
             MethodInfo[] methodInfos = typeof(InsertQueriesTest).GetMethods(BindingFlags.Public | BindingFlags.Instance);
             foreach (var mi in methodInfos)
             {
-               
+
                 try
                 {
                     mi.Invoke(insertQueriesTest, parameters);
@@ -336,10 +360,10 @@ namespace QueriesTestApplication
             }
             if (insertQueriesTest.testResults1.Count > 0)
             {
-                foreach (var val in insertQueriesTest.testResults1)                   
-                {                    
-                    if (val.Value.ResultStatus == Common.Status.Failed)                    
-                        Common.PrintFailedTestCaseMessage(val.Key, val.Value.Exception);                  
+                foreach (var val in insertQueriesTest.testResults1)
+                {
+                    if (val.Value.ResultStatus == Common.Status.Failed)
+                        Common.PrintFailedTestCaseMessage(val.Key, val.Value.Exception);
                 }
 
                 foreach (var val in insertQueriesTest.TestResults)
@@ -348,7 +372,7 @@ namespace QueriesTestApplication
                         Console.WriteLine(val.Key + ":Failed");
                 }
             }
-            
+
 
             Console.WriteLine("Total methods called " + insertQueriesTest.TestResults.Count);
 
@@ -380,11 +404,11 @@ namespace QueriesTestApplication
                     ReportHelper.PrintError(mi.Name + ex.Message);
                 }
 
-               
+
             }
-           
+
             insertQueriesTest.Report.PrintReport();
-  
+
             Console.ReadLine();
         }
 
@@ -445,8 +469,13 @@ namespace QueriesTestApplication
             }
 
 
-            JToken one =(JToken) "1" ;
+            JToken one = (JToken)"1";
             bool res = one.Type is JTokenType.String;
+
+
+            var startAfterTime = DateTime.Now + TimeSpan.FromSeconds(120);
+
+
 
 
         }
@@ -473,6 +502,12 @@ namespace QueriesTestApplication
             }
             slashVerifier.Report.PrintReport();
             Console.ReadLine();
+        }
+
+        private static void PromptInputIfNeeded()
+        {
+            if (!OneGo)
+                Console.ReadLine();
         }
     }
 

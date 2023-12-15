@@ -22,7 +22,7 @@ namespace QueriesTestApplication
         public Dictionary<string, ResultStatus> testResults;
         public Dictionary<string, TestResult> testResults1;
         List<Product> productList;
-        Report _report;
+        readonly Report _report;
         public InsertQueriesTest()
         {
             cache = CacheManager.GetCache(Common.CacheName);
@@ -170,8 +170,8 @@ namespace QueriesTestApplication
 
                 if (result > 0 && cache.Contains(key))
                 {
-                    var obj = cache.Get<object>(key);
-                    if (obj == null)
+                    var obj = cache.Get<Product>(key);
+                    if (obj == null || obj.Id != val.Id)
                         throw new Exception("Case failed.");
                 }
                 testResults.Add(methodName, ResultStatus.Success);

@@ -80,10 +80,10 @@ namespace QueriesTestApplication
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
                 int TotalFailedOperations = 0;
+                Helper.ValidateDictionary(dictionary);
                 foreach (DictionaryEntry val in dictionary)
                 {
                     TotalFailedOperations++;
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
                 }
 
                 TotalFailedOperations = 0;
@@ -153,10 +153,11 @@ namespace QueriesTestApplication
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
                 int TotalFailedOperations = 0;
+                Helper.ValidateDictionary(dictionary);
+
                 foreach (DictionaryEntry val in dictionary)
                 {
                     TotalFailedOperations++;
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
                 }
 
                 TotalFailedOperations = 0;
@@ -226,10 +227,11 @@ namespace QueriesTestApplication
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
                 int TotalFailedOperations = 0;
+                Helper.ValidateDictionary(dictionary);
+
                 foreach (DictionaryEntry val in dictionary)
                 {
                     TotalFailedOperations++;
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
                 }
 
                 TotalFailedOperations = 0;
@@ -300,11 +302,9 @@ namespace QueriesTestApplication
                 stopwatch.Start();
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                Helper.ValidateDictionary(dictionary);
 
-                foreach (DictionaryEntry val in dictionary)
-                {
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
-                }
+                
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -580,10 +580,7 @@ namespace QueriesTestApplication
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
 
-                foreach (DictionaryEntry val in dictionary)
-                {
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
-                }
+                Helper.ValidateDictionary(dictionary);
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -637,10 +634,8 @@ namespace QueriesTestApplication
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
 
-                foreach (DictionaryEntry val in dictionary)
-                {
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
-                }
+                Helper.ValidateDictionary(dictionary);
+
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -695,10 +690,8 @@ namespace QueriesTestApplication
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
 
-                foreach (DictionaryEntry val in dictionary)
-                {
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
-                }
+                Helper.ValidateDictionary(dictionary);
+
                 throw new Exception("Failure:Partial Update items using Move query");
 
 
@@ -740,10 +733,8 @@ namespace QueriesTestApplication
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
 
-                foreach (DictionaryEntry val in dictionary)
-                {
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
-                }
+                Helper.ValidateDictionary(dictionary);
+
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -3269,8 +3260,7 @@ namespace QueriesTestApplication
                             continue;
 
                     }
-
-                    ReportHelper.PrintError($"Operation failed for key: {key} with exception : {ex}");
+                    throw new Exception("test case failed");
 
                 }
                 stopwatch.Stop();
@@ -3690,11 +3680,8 @@ namespace QueriesTestApplication
 
                 updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
 
-                foreach (DictionaryEntry val in dictionary)
-                {
-                    ReportHelper.PrintError($"Operation failed for key: {val.Key} with exception : {val.Value.ToString()}");
+                Helper.ValidateDictionary(dictionary);
 
-                }
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
                 string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
