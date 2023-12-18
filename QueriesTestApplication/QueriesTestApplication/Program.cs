@@ -32,7 +32,9 @@ namespace QueriesTestApplication
                 //RunInsertQueriesTestsForJsonObject();
 
                 //MetaVerificationInUpdateQuery();
-                RunInsertQueriesTests();
+                //RunInsertQueriesTests();
+
+                UpsertQueriesWithMeta();
 
                 //RunMetaVerificationTests();
 
@@ -411,6 +413,44 @@ namespace QueriesTestApplication
 
             Console.ReadLine();
         }
+
+
+        #endregion
+
+
+
+        #region -------------------------- Upsert tests --------------------------
+        private static void UpsertQueriesWithMeta()
+        {
+            object[] parameters = null;
+            UpsertQueriesWithMeta upsertQueriesTest = NewMethod();
+
+            MethodInfo[] methodInfos = typeof(UpsertQueriesWithMeta).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (var mi in methodInfos)
+            {
+
+                try
+                {
+                    mi.Invoke(upsertQueriesTest, parameters);
+                }
+                catch (Exception ex)
+                {
+                    ReportHelper.PrintError(mi.Name + ex.Message);
+                }
+
+
+            }
+
+            upsertQueriesTest.Report.PrintReport();
+
+        }
+
+        private static UpsertQueriesWithMeta NewMethod()
+        {
+            return new UpsertQueriesWithMeta();
+        }
+
+
 
 
         #endregion
