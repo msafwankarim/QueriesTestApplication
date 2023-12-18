@@ -85,7 +85,7 @@ namespace QueriesTestApplication
         public void AddJsonObject()
         {
             cache.Clear();
-            var methodName = "AddJsonObject";
+            var methodName = MethodBase.GetCurrentMethod().Name;
 
             Product product = new Product() { Id = 1, Time = DateTime.Now, Name = "Chai", Manufacturers = new string[2] { "AlachiSoft", "DiyaTech" }, ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Alachisoft.NCache.Sample.Data.Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan" } };
             cache.Insert("1", product);
@@ -104,6 +104,7 @@ namespace QueriesTestApplication
 
                 var insertresult = cache.SearchService.ExecuteNonQuery(queryCommand);
 
+                var returnedJ = cache.Get<JsonObject>(key);
                 var returned = cache.Get<Product>(key);
 
                 if (returned.Id == product.Id && returned.Order.ShipName == product.Order.ShipName)
@@ -154,7 +155,7 @@ namespace QueriesTestApplication
                 if(objFromCache == null)
                     throw new Exception(ResourceMessages.GotNullObject);
 
-                if (objFromCache.ToString().Contains("vlaue"))                
+                if (objFromCache.ToString().Contains("value"))                
                     _report.AddPassedTestCase(methodName, "Success: Add JSON Object");   
                 else
                     throw new Exception("Failure: Insert Json Value in cache ");
@@ -177,9 +178,16 @@ namespace QueriesTestApplication
                 cache.Clear();
                 string key = GetKey();
                 var val = GetProduct();
+                
+                //todo one space before comma throws ecxeption
 
-                string query = $"Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value) Values ( {key} , @val)";
+                //string query = $"Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value) Values ( {key} , @val)";
+
+                  string query = $"Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value) Values ( {key}  , @val)";
+
+
                 QueryCommand queryCommand = new QueryCommand(query);
+                //queryCommand.Parameters.Add("@key1", key);
                 queryCommand.Parameters.Add("@val", val);
                 var result = cache.SearchService.ExecuteNonQuery(queryCommand);
                 if (result > 0 && cache.Contains(key))
@@ -212,11 +220,13 @@ namespace QueriesTestApplication
                 string key = GetKey();
                 var val = GetProduct();
 
-                string query = $"Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value) Values ( {key} , @val)";
+                string query = $"Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value) Values ( {key}, @val)";
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@val", null);
                 var result = cache.SearchService.ExecuteNonQuery(queryCommand);
                 
+                var reslt = cache.Get<object>(key);
+
                 throw new Exception("didnot get exception after adding null object in cache");
                                 
             }

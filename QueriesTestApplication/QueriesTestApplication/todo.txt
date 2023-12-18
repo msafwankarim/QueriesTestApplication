@@ -1,36 +1,19 @@
-Is aggregate dependency supported. how will i add multiple dependencies in aggregate dependency
-extensible dependency custom dependency
-cache sync dependency also requires id password and server info how can i pass that
-
-        public CacheSyncDependency(string remoteCacheId, string key)   
-        public CacheSyncDependency(string remoteCacheId, string key, ServerInfo serverInfo) 
-        public CacheSyncDependency(string remoteCacheId, string key, string userId, byte[] password)
-        public CacheSyncDependency(string remoteCacheId, string key, ServerInfo serverInfo, Credentials credentials )
+only group and tags are working in MetaVerificationInUpdateQuery
+items is added with named tag but select query says index not defined insertQueries.VerifyMetaData2()
 
 test on all topologies and binary cache
 
 set name = aqib will throw unexpected chacracter encountered exception.(\"aqib\" is correct )
 
 no summary for query service API 
-        
-        public KeyDependency(string[] keys)        
-        public KeyDependency(string[] keys, DateTime startAfter)      
-        public KeyDependency(string[] keys, KeyDependencyType keyDependencyType)        
-        public KeyDependency(string[] keys, DateTime startAfter, KeyDependencyType keyDependencyType)
-          
-        public FileDependency(string fileName)   
-        public FileDependency(string[] fileNames)  
-        public FileDependency(string fileName, DateTime startAfter)        
-        public FileDependency(string[] fileNames, DateTime startAfter)
+     
        
-
-5) Test Case VerifyResyncOption FAILED due to Reason Incorrect meta information defined.
-6) Test Case VerifyCacheItemVersion FAILED due to Reason Incorrect meta information defined.
-7) Test Case VerifySyncDependency FAILED due to Reason Incorrect meta information defined. Failed to parse 'CustomDependency' metadata in the given SQL.
-        
 test with binary cache
 test without query indexing
 dedicated call
  
 Update statement is only supported on JSON serialized cache. exception in insert query
+
+date time issue 
+insert queries have comma issue while specifying values
          

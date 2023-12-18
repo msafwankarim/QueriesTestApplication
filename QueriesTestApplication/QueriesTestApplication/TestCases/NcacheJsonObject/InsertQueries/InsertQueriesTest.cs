@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using QueriesTestApplication.Utils;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -22,6 +23,7 @@ namespace QueriesTestApplication
         public Dictionary<string, ResultStatus> testResults;
         public Dictionary<string, TestResult> testResults1;
         List<Product> productList;
+        private int expirationWaitTime = 25;
         readonly Report _report;
         public InsertQueriesTest()
         {
@@ -29,7 +31,7 @@ namespace QueriesTestApplication
             testResults = new Dictionary<string, ResultStatus>();
             testResults1 = new Dictionary<string, TestResult>();
             productList = new List<Product>();
-            _report = new Report(nameof(UpdateQueriesTest));
+            _report = new Report(nameof(InsertQueriesTest));
         }
 
         public Report Report { get => _report; }
@@ -39,7 +41,6 @@ namespace QueriesTestApplication
             get { return testResults; }
         }
 
-        public void PrintReport() { _report.PrintReport(); }
 
 
         //public void Add0(string query)
@@ -435,13 +436,41 @@ namespace QueriesTestApplication
         }
 
         //  Provide Query with wrong format (key, value)
+        public void VerifyQueryFormatWithKeyValInSingleQuote()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                cache.Clear();
+                var query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key, Value) Values('key',  'val')";
+                QueryCommand queryCommand = new QueryCommand(query);
+                cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var item = cache.Get<string>("key");
+                if (item == "val")
+                {
+                    _report.AddPassedTestCase(methodName, @"{Successful: Provide Query with wrong format (key, value) ");
+
+
+                }
+                else
+
+                throw new Exception(@"{Failure: Provide Query with wrong format after Into directly start with key,val ");
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+        }
+
         public void VerifyQueryFormat2()
         {
             var methodName = "VerifyQueryFormat2";
             try
             {
                 cache.Clear();
-                var query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key, Value) Values('key',  'val')";
+                var query = "Insert into  (Key, Value) Values('key',  'val')";
                 QueryCommand queryCommand = new QueryCommand(query);
                 cache.SearchService.ExecuteNonQuery(queryCommand);
                 testResults.Add(methodName, ResultStatus.Failure);
@@ -461,15 +490,19 @@ namespace QueriesTestApplication
         //use reserved keys in query
         public void VerifyQueryFormat3()
         {
-            var methodName = "VerifyQueryFormat3";
+            var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
                 cache.Clear();
                 var query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value) Values('Insert','Value')";
                 QueryCommand queryCommand = new QueryCommand(query);
                 cache.SearchService.ExecuteNonQuery(queryCommand);
-                testResults.Add(methodName, ResultStatus.Failure);
-                throw new Exception(@"{Failure: use reserved keys in query");
+
+                var item = cache.Get<string>("Insert");
+                if (item == "Value")                
+                    _report.AddPassedTestCase(methodName, @"{Successful: use reserved keys in query");
+                else
+                  throw new Exception(@"{Failure: use reserved keys in query");
 
             }
             catch (Exception ex)
@@ -489,9 +522,9 @@ namespace QueriesTestApplication
             var methodName = "VerifyQueryFormat4";
             try
             {
-                cache.Clear();
-                string key = GetKey();
-                var val = GetProduct();
+                 cache.Clear();
+                 string key = GetKey();
+                 var val = GetProduct();
 
                 var query = "Upset into Alachisoft.NCache.Sample.Data.Product (Key,Value) Values ('key','val')";
                 QueryCommand queryCommand = new QueryCommand(query);
@@ -544,7 +577,7 @@ namespace QueriesTestApplication
             try
             {
                 cache.Clear();
-                var query = "Upsert into Alachisoft.NCache.Sample.Data.Product (Key, Value) Values('key',  'val')";
+                var query = "Upsert into  (Key, Value) Values('key',  'val')";
                 QueryCommand queryCommand = new QueryCommand(query);
                 cache.SearchService.ExecuteNonQuery(queryCommand);
                 testResults.Add(methodName, ResultStatus.Failure);
@@ -564,17 +597,14 @@ namespace QueriesTestApplication
 
 
 
-
-
-
         //use reserved keys in query
         public void VerifyQueryFormat7()
         {
-            var methodName = "VerifyQueryFormat7";
+            var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
                 cache.Clear();
-                var query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value) Values('Insert','Value')"; // ToDo discuss 
+                var query = "Insert into  (Key,Value) Values('Insert','Value')"; 
                 QueryCommand queryCommand = new QueryCommand(query);
                 cache.SearchService.ExecuteNonQuery(queryCommand);
                 testResults.Add(methodName, ResultStatus.Failure);
@@ -890,7 +920,8 @@ namespace QueriesTestApplication
         public void VerifyMetaData0()
         {
             count++;
-            var methodName = "VerifyMetaData0";
+            var methodName = MethodBase.GetCurrentMethod().Name;
+
             try
             {
                 cache.Clear();
@@ -1020,13 +1051,16 @@ namespace QueriesTestApplication
             // throw;
         }
 
+      
+
 
         //verify meta by adding with named tags and then getting through those named tags.
         public void VerifyMetaData2()
         {
             count++;
             int reveived = 0;
-            var methodName = "VerifyMetaData2";
+            var methodName = MethodBase.GetCurrentMethod().Name;
+
             try
             {
                 cache.Clear();
@@ -1061,6 +1095,8 @@ namespace QueriesTestApplication
                     }
 
                 }
+
+                var item = cache.GetCacheItem(GetKey() + "2");
 
                 string searchQuery = "SELECT $Value$ FROM Alachisoft.Ncache.Sample.Data.Product WHERE FlashSaleDiscount = @discount ";
                 QueryCommand searchQueryCommand = new QueryCommand(searchQuery);
@@ -1119,12 +1155,15 @@ namespace QueriesTestApplication
                                               'namedtags':[{'FlashSaleDiscount':0.5,'type':'decimal'}],
                                               'expiration':{'type':'absolute','interval':2}
                                               }");
+
                     var result = cache.SearchService.ExecuteNonQuery(qc);
 
                 }
 
-                Console.WriteLine("Waiting for 20 Seconds to verify absolute expiration");
-                Thread.Sleep(20000);
+                var cacheItem = cache.GetCacheItem(GetKey() + "1");
+
+                Console.WriteLine($"Waiting for {expirationWaitTime} Seconds to verify absolute expiration");
+                Thread.Sleep(expirationWaitTime * 1000);
 
                 long itemsInCache = cache.Count;
                 if (itemsInCache > 0)
@@ -1153,7 +1192,8 @@ namespace QueriesTestApplication
         {
             count++;
             int reveived = 0;
-            var methodName = "VerifyMetaData4";
+            var methodName = MethodBase.GetCurrentMethod().Name;
+
             try
             {
                 cache.Clear();
@@ -1175,12 +1215,17 @@ namespace QueriesTestApplication
                                               'namedtags':[{'FlashSaleDiscount':0.5,'type':'decimal'}],
                                                'expiration':{'type':'sliding','interval':'2'}
                                               }");
+
+
                     var result = cache.SearchService.ExecuteNonQuery(qc);
 
                 }
 
-                Console.WriteLine("Waiting for 20 seconds to verify Sliding Dependency");
-                Thread.Sleep(20000);
+                var cacheItem = cache.GetCacheItem(GetKey() + "1");
+                
+
+                Console.WriteLine($"Waiting for {expirationWaitTime} seconds to verify Sliding Dependency");
+                Thread.Sleep(expirationWaitTime * 1000);
 
                 long itemsInCache = cache.Count;
                 if (itemsInCache > 0)

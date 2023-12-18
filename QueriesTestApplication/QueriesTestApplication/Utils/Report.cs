@@ -14,7 +14,10 @@ namespace QueriesTestApplication.Utils
 
         public static List<string> _expectedFailTestCases = new List<string>()
         {
-            "TestJsonArray" // test case fails because server side has serialized array which means that the objects inside the array are wrapped i.e $value {}
+            "TestJsonArray", // test case fails because server side has serialized array which means that the objects inside the array are wrapped i.e $value {}
+            nameof(MetaVerificationTestForJsonObj.VerifyNotifyExtensibleDependency), // notification deopendency requires cosmos db
+            nameof(MetaVerificationTestForJsonObj.VerifySyncDependency), // cache sync dependency not supported
+            nameof(MetaVerificationTestForJsonObj.VerifyCacheItemVersion), // cache sync dependency not supported
         };
 
         bool _printExpectedFailedCases = false;

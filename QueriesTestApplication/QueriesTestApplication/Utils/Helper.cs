@@ -79,5 +79,32 @@ namespace QueriesTestApplication.Utils
         #endregion
 
 
+        public static JsonArray GetNamedTagsArray()
+        {
+
+            //NameTags
+            JsonObject FlashDiscount = new JsonObject();
+            FlashDiscount.AddAttribute("FlashDiscount", "NoFlashDiscount");
+            FlashDiscount.AddAttribute("type", "string");
+
+            JsonObject Discount = new JsonObject();
+            Discount.AddAttribute("Discount", "Yes");
+            Discount.AddAttribute("type", "string");
+
+            JsonObject Percentage = new JsonObject();
+            double percentage = 1.5;
+            Percentage.AddAttribute("Percentage", percentage);
+            Percentage.AddAttribute("type", "double");
+
+            //NameTagArray Containing all the NameTags
+            JsonArray NameTagsArray = new JsonArray();
+            NameTagsArray.Add(FlashDiscount);
+            NameTagsArray.Add(Discount);
+            NameTagsArray.Add(Percentage);
+
+            return NameTagsArray;
+        }
+
+
     }
 }

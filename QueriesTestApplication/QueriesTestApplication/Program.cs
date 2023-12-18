@@ -14,7 +14,7 @@ namespace QueriesTestApplication
     class Program
     {
         public static bool OneGo { get; set; } = true;
-        public static bool DonotSkipAnyCase { get;  set; } = true; 
+        public static bool DonotSkipAnyCase { get; set; } = true;
 
         static void Main(string[] args)
         {
@@ -24,14 +24,17 @@ namespace QueriesTestApplication
 
                 Common.CacheName = "democache";
 
-                // TempTests();
+                TempTests();
 
                 // EscapeSequencesVerifier();
 
+                // RunMetaVerificationTestsForJsonObj();                
+                //RunInsertQueriesTestsForJsonObject();
 
-                RunMetaVerificationTestsForJsonObj();
+                //MetaVerificationInUpdateQuery();
+                RunInsertQueriesTests();
 
-                ///RunMetaVerificationTests();
+                //RunMetaVerificationTests();
 
                 // RunInlineQueryTestForUpdate();
                 // RunUpdateQueriesTests();
@@ -88,7 +91,7 @@ namespace QueriesTestApplication
             object[] parameters = null;
             InlineQueryTestsForInsertUpsert metaTest = new InlineQueryTestsForInsertUpsert();
             Common.PrintClassName("InlineQueryTestsForInsertUpsert");
-            MethodInfo[] methodInfos = typeof(InlineQueryTestsForInsertUpsert).GetMethods(BindingFlags.Public | BindingFlags.Instance);
+            MethodInfo[] methodInfos = typeof(InlineQueryTestsForInsertUpsert).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var mi in methodInfos)
             {
                 try
@@ -159,7 +162,6 @@ namespace QueriesTestApplication
 
             MethodInfo[] methodInfos = typeof(MetaVerificationTestForJsonObj).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-
             foreach (var mi in methodInfos)
             {
                 try
@@ -175,9 +177,7 @@ namespace QueriesTestApplication
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("unhandeled exception" + $"{ex.Message}");
-
-
+                    ReportHelper.PrintError(mi.Name + ex.Message);
                 }
             }
 
@@ -201,9 +201,10 @@ namespace QueriesTestApplication
                 {
                     mi.Invoke(metaTest, parameters);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
 
+                    ReportHelper.PrintError(mi.Name + ex.Message);
 
                 }
             }
@@ -224,7 +225,7 @@ namespace QueriesTestApplication
             Common.PrintClassName("InlineQueryTestForUpdate");
 
             // metaTest.Add1(Console.ReadLine());
-            MethodInfo[] methodInfos = typeof(InlineQueryTestForUpdate).GetMethods(BindingFlags.Public | BindingFlags.Instance);
+            MethodInfo[] methodInfos = typeof(InlineQueryTestForUpdate).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var mi in methodInfos)
             {
                 try
@@ -338,11 +339,9 @@ namespace QueriesTestApplication
         {
             object[] parameters = null;
             InsertQueriesTest insertQueriesTest = new InsertQueriesTest();
-            Common.PrintClassName("InsertQueriesTest");
 
 
-
-            MethodInfo[] methodInfos = typeof(InsertQueriesTest).GetMethods(BindingFlags.Public | BindingFlags.Instance);
+            MethodInfo[] methodInfos = typeof(InsertQueriesTest).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var mi in methodInfos)
             {
 
@@ -376,7 +375,7 @@ namespace QueriesTestApplication
 
             Console.WriteLine("Total methods called " + insertQueriesTest.TestResults.Count);
 
-            insertQueriesTest.PrintReport();
+            insertQueriesTest.Report.PrintReport();
 
             RunInsertQueriesTestsForJsonObject();
             Console.ReadLine();
@@ -389,9 +388,10 @@ namespace QueriesTestApplication
             InsertQueriesTestForJsonObj insertQueriesTest = new InsertQueriesTestForJsonObj();
             Common.PrintClassName(nameof(InsertQueriesTestForJsonObj));
 
+            MethodInfo[] methodInfos = typeof(InsertQueriesTestForJsonObj).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
+            insertQueriesTest.AddJsonObject();
 
-            MethodInfo[] methodInfos = typeof(InsertQueriesTestForJsonObj).GetMethods(BindingFlags.Public | BindingFlags.Instance);
             foreach (var mi in methodInfos)
             {
 
@@ -421,7 +421,7 @@ namespace QueriesTestApplication
             InOperatorTesting inOperatortTest = new InOperatorTesting();
             Common.PrintClassName("InOperatorTesting");
 
-            MethodInfo[] methodInfos = typeof(InOperatorTesting).GetMethods(BindingFlags.Public | BindingFlags.Instance);
+            MethodInfo[] methodInfos = typeof(InOperatorTesting).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var mi in methodInfos)
             {
                 try
@@ -475,7 +475,23 @@ namespace QueriesTestApplication
 
             var startAfterTime = DateTime.Now + TimeSpan.FromSeconds(120);
 
+           
 
+
+            object obj = @"{ 
+                                'tags':['price','sale'],  
+                                'namedtags':[
+                                               { 'discount':'0.5','type':'decimal'},
+                                               { 'sale':'offer','type':'string'}
+                                            ]
+                             }";
+
+            obj = JsonValueBase.Parse((string)obj);
+
+            if (obj is JsonObject)
+            {
+
+            }
 
 
         }

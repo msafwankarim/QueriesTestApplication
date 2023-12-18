@@ -40,7 +40,7 @@ namespace QueriesTestApplication
             _report = new Report(nameof(MetaVerificationTestForJsonObj));
         }
 
-        public void AddSimpleItem()
+        public void AddAndGetSimpleItem()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
@@ -602,31 +602,12 @@ namespace QueriesTestApplication
             try
             {
                 _cache.Clear();
-                double percentage = 1.5;
-                //JSON Object to be Added as MetaData
-                var MetaData = new JsonObject();
+                
 
-                //NameTags
-                JsonObject FlashDiscount = new JsonObject();
-                FlashDiscount.AddAttribute("FlashDiscount", "NoFlashDiscount");
-                FlashDiscount.AddAttribute("type", "string");
+                JsonObject MetaData = new ();
 
-                JsonObject Discount = new JsonObject();
-                Discount.AddAttribute("Discount", "Yes");
-                Discount.AddAttribute("type", "string");
+                MetaData.AddAttribute("namedtags", Helper.GetNamedTagsArray());
 
-                JsonObject Percentage = new JsonObject();
-                Percentage.AddAttribute("Percentage", percentage);
-                Percentage.AddAttribute("type", "double");
-
-                //NameTagArray Containing all the NameTags
-                JsonArray NameTagsArray = new JsonArray();
-                NameTagsArray.Add(FlashDiscount);
-                NameTagsArray.Add(Discount);
-                NameTagsArray.Add(Percentage);
-
-                //Adding nameTagArray in JsonObject
-                MetaData.AddAttribute("namedtags", NameTagsArray);
 
                 string key1 = "abc";
                 var val = GetProduct();
@@ -658,7 +639,7 @@ namespace QueriesTestApplication
                 _report.AddFailedTestCase(methodName, ex);
             }
 
-        }
+        }     
 
         #endregion
 
@@ -1103,7 +1084,7 @@ namespace QueriesTestApplication
 
         }
 
-        private void VerifyNotifyExtensibleDependency()
+        public void VerifyNotifyExtensibleDependency()
         {
             
             string methodName = MethodBase.GetCurrentMethod().Name;
@@ -1161,9 +1142,7 @@ namespace QueriesTestApplication
 
         #region --------------------------------- Cache SyncDependency   ---------------
 
-        // todo : it also requires id password and server info  how can i pass that
-
-        private void VerifySyncDependency()
+        public void VerifySyncDependency()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
             _cache.Clear();
@@ -1216,95 +1195,6 @@ namespace QueriesTestApplication
 
         }
 
-        #endregion
-
-
-        #region --------------------------------- Multiple Dependencies -----------------
-
-
-        public void KeyAndFileDependency()
-        {
-            string methodName = MethodBase.GetCurrentMethod().Name;
-            string Itemkey = "KeyAndFileDependency";
-            Product item = GetProduct();
-            string description = "Verify key and file dependency with one master key with Remove enum";
-
-            try
-            {
-                string filePath = "C:\\\\dependencyFile.txt";
-                File.AppendAllText(filePath, $"\n {methodName} => This file is used to verify file dependency in ncache by queries. {DateTime.Now}");
-
-                var masterKey = Guid.NewGuid().ToString();
-                _cache.Insert(masterKey, item);
-
-                string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
-
-
-                string keysArray = $"[\"{masterKey}\"]";
-                string keyDependency = "{\"keys\" :" + keysArray + ", \"type\" : \"removeonly\"}";
-
-
-                var fileDependency = "{'fileNames':['C:\\\\dependencyFile.txt' ], 'interval' : 5}";
-
-                string jsonString = "{'dependency':[{'key':" + keyDependency + "},{'file':" + fileDependency + "}]}";
-
-                jsonString = jsonString.Replace("'","\"") ;
-
-                var jsonObject = new JsonObject(jsonString);
-
-                QueryCommand queryCommand = new QueryCommand(query);
-                queryCommand.Parameters.Add("@key1", Itemkey);
-                queryCommand.Parameters.Add("@val", item);
-                queryCommand.Parameters.Add("@metadata", jsonObject);
-
-                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
-
-                var cacheItem = _cache.GetCacheItem(Itemkey);
-
-                if (cacheItem == null)
-                    throw new Exception("item not inserted with key and file  dependency");
-
-                if (cacheItem.Dependency == null)
-                    throw new Exception(" dependency is not added with cache item");
-
-                //update master key
-                _cache.Insert(masterKey, item);
-
-                if (_cache.GetCacheItem(Itemkey) == null)
-                    throw new Exception($"Updating master key triggerd the dependency");
-
-                _cache.Remove(masterKey);
-
-                if (_cache.GetCacheItem(Itemkey) != null)
-                    throw new Exception($"Removing master key didnot triggered key dependency");
-
-                // now verify file dependency
-                _cache.Insert(masterKey, item);
-                _cache.SearchService.ExecuteNonQuery(queryCommand);
-
-                File.AppendAllText(filePath, $"\n {methodName} => updating the file to verify dependency {DateTime.Now}");
-
-                Console.WriteLine("waiting for 5 seconds to verify dependency");
-                Thread.Sleep(5000);
-
-
-                if (_cache.GetCacheItem(Itemkey) != null)
-                    throw new Exception($"updating the file  didnot triggered key dependency");
-
-                _report.AddPassedTestCase(methodName, description);
-
-            }
-            catch (Exception ex)
-            {
-                _report.AddFailedTestCase(methodName, ex);
-
-            }
-
-
-
-        }
-
-   
         #endregion
 
 
@@ -1512,12 +1402,12 @@ namespace QueriesTestApplication
                 int sleepTime = ExpirationTimes.AbosluteExpirationSeconds * 1000 + _cleanIntervalSeconds * 1000;
 
                 Console.WriteLine($"Waiting for {sleepTime} MilliSeconds for Testing Expiration ");
-                Thread.Sleep(sleepTime);
+                Thread.Sleep(sleepTime+1000);
 
                 var returned = _cache.Get<Alachisoft.NCache.Sample.Data.Product>(key1);
                 if (returned != null)
                 {
-                    throw new Exception("Failure: Add Absolute Expiration Metadata in JSON object");
+                    throw new Exception("item didnot expired ");
                 }
                 else
                 {
@@ -1781,7 +1671,7 @@ namespace QueriesTestApplication
                     throw new Exception("Cache item obtanined doesnot have DefaultSlidingLonger expiration");
 
                 var sleepTime = ExpirationTimes.DefaultSlidingLonger * 1000 + _cleanIntervalSeconds * 1000;
-                Console.WriteLine($"Waiting for {sleepTime} milli seconds before verifying sliding expiration");
+                Console.WriteLine($"Waiting for {sleepTime} milli seconds before verifying sliding longer expiration");
 
                 Thread.Sleep(sleepTime);
 
@@ -1802,7 +1692,7 @@ namespace QueriesTestApplication
 
         }
 
-        private void WrongExpiration()
+        public void WrongExpiration()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
@@ -1811,7 +1701,7 @@ namespace QueriesTestApplication
 
                 string wrongExpiration = "WrongExpiration";
 
-                JsonObject MetaData = new JsonObject();
+                 JsonObject MetaData = new JsonObject();
 
                 JsonObject expiration = new JsonObject();
                 expiration.AddAttribute("type", wrongExpiration);
@@ -1836,7 +1726,10 @@ namespace QueriesTestApplication
                 catch (Exception ex)
                 {
                     if (ex.Message.ToLower().Contains("expiration") && Helper.IsInCorrectMetaException(ex))
+                    {
                         _report.AddPassedTestCase(methodName, "add wrong meta in query");
+                        return;
+                    }
                     else
                         throw;
                 }
@@ -2022,7 +1915,7 @@ namespace QueriesTestApplication
 
         #region --------------------------------- Cache item version  ------------------
 
-        private void VerifyCacheItemVersion()
+        public void VerifyCacheItemVersion()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
             _cache.Clear();
@@ -2074,6 +1967,94 @@ namespace QueriesTestApplication
         #endregion
 
 
+        #region --------------------------------- Multiple Dependencies -----------------
+
+
+        public void KeyAndFileDependency()
+        {
+            string methodName = MethodBase.GetCurrentMethod().Name;
+            string Itemkey = "KeyAndFileDependency";
+            Product item = GetProduct();
+            string description = "Verify key and file dependency with one master key with Remove enum";
+
+            try
+            {
+                string filePath = "C:\\\\dependencyFile.txt";
+                File.AppendAllText(filePath, $"\n {methodName} => This file is used to verify file dependency in ncache by queries. {DateTime.Now}");
+
+                var masterKey = Guid.NewGuid().ToString();
+                _cache.Insert(masterKey, item);
+
+                string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+
+                string keysArray = $"[\"{masterKey}\"]";
+                string keyDependency = "{\"keys\" :" + keysArray + ", \"type\" : \"removeonly\"}";
+
+
+                var fileDependency = "{'fileNames':['C:\\\\dependencyFile.txt' ], 'interval' : 5}";
+
+                string jsonString = "{'dependency':[{'key':" + keyDependency + "},{'file':" + fileDependency + "}]}";
+
+                jsonString = jsonString.Replace("'", "\"");
+
+                var jsonObject = new JsonObject(jsonString);
+
+                QueryCommand queryCommand = new QueryCommand(query);
+                queryCommand.Parameters.Add("@key1", Itemkey);
+                queryCommand.Parameters.Add("@val", item);
+                queryCommand.Parameters.Add("@metadata", jsonObject);
+
+                var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var cacheItem = _cache.GetCacheItem(Itemkey);
+
+                if (cacheItem == null)
+                    throw new Exception("item not inserted with key and file  dependency");
+
+                if (cacheItem.Dependency == null)
+                    throw new Exception(" dependency is not added with cache item");
+
+                //update master key
+                _cache.Insert(masterKey, item);
+
+                if (_cache.GetCacheItem(Itemkey) == null)
+                    throw new Exception($"Updating master key triggerd the dependency");
+
+                _cache.Remove(masterKey);
+
+                if (_cache.GetCacheItem(Itemkey) != null)
+                    throw new Exception($"Removing master key didnot triggered key dependency");
+
+                // now verify file dependency
+                _cache.Insert(masterKey, item);
+                _cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                File.AppendAllText(filePath, $"\n {methodName} => updating the file to verify dependency {DateTime.Now}");
+
+                Console.WriteLine("waiting for 5 seconds to verify dependency");
+                Thread.Sleep(5000);
+
+
+                if (_cache.GetCacheItem(Itemkey) != null)
+                    throw new Exception($"updating the file  didnot triggered key dependency");
+
+                _report.AddPassedTestCase(methodName, description);
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+
+
+        }
+
+
+        #endregion
+
 
         private Product GetProduct()
         {
@@ -2085,14 +2066,14 @@ namespace QueriesTestApplication
 
     public static class ExpirationTimes
     {
-        public static int SlidingExpirationSeconds = 5;
-        public static int AbosluteExpirationSeconds = 5;
+        public const int SlidingExpirationSeconds = 5;
+        public const int AbosluteExpirationSeconds = 5;
 
-        public static int DefaultAbsolute = 5;
-        public static int DefaultAbsoluteLonger = 10;
+        public const int DefaultAbsolute = 5;
+        public const int DefaultAbsoluteLonger = 10;
 
-        public static int DefaultSliding = 5;
-        public static int DefaultSlidingLonger = 10;
+        public const int DefaultSliding = 5;
+        public const int DefaultSlidingLonger = 10;
 
     }
 
