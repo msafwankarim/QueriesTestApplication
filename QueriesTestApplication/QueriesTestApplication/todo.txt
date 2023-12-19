@@ -1,4 +1,3 @@
-only group and tags are working in MetaVerificationInUpdateQuery
 items is added with named tag but select query says index not defined insertQueries.VerifyMetaData2()
 
 why this.Name = '\"{teaName}\"' inverted commas
@@ -17,5 +16,7 @@ dedicated call
 Update statement is only supported on JSON serialized cache. exception in insert query
 
 date time issue 
-insert queries have comma issue while specifying values
+insert queries have comma issue while specifying values . also remove-meta and set-meta
+
+verify tag is given in service  <add key="NCache.ParserBufferSize" value="1024"/>
          

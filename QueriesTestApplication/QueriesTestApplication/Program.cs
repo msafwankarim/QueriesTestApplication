@@ -24,7 +24,7 @@ namespace QueriesTestApplication
 
                 Common.CacheName = "democache";
 
-               // TempTests();
+                // TempTests();
 
                 // EscapeSequencesVerifier();
 
@@ -35,9 +35,10 @@ namespace QueriesTestApplication
                 //RunInsertQueriesTests();
                 //UpsertQueriesWithMeta();
                 //RunInlineQueryTestForUpdate();                
-               // RunInlineQueryTests();
+                // RunInlineQueryTests();
+                //RunInlineQueryTestForUpdate0();
 
-                RunInlineQueryTestForUpdate0();
+                MetaVerificationInInlineQuery(); 
 
                 //RunMetaVerificationTests();
 
@@ -157,7 +158,6 @@ namespace QueriesTestApplication
             RunMetaVerificationTestsForJsonObj();
             PromptInputIfNeeded();
         }
-
 
 
         private static void RunMetaVerificationTestsForJsonObj()
@@ -486,6 +486,31 @@ namespace QueriesTestApplication
 
 
         #endregion
+
+
+        private static void MetaVerificationInInlineQuery()
+        {
+            object[] parameters = null;
+            MetaVerificationInInlineQuery inlineMetaVerification = new MetaVerificationInInlineQuery();
+                       
+            MethodInfo[] methodInfos = typeof(MetaVerificationInInlineQuery).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (var mi in methodInfos)
+            {
+                try
+                {
+                    mi.Invoke(inlineMetaVerification, parameters);
+                }
+                catch (Exception ex)
+                {
+                    ReportHelper.PrintError(mi.Name + ex.Message);
+                }
+
+            }
+
+            inlineMetaVerification.Report.PrintReport();
+
+            PromptInputIfNeeded();
+        }
 
 
         private static void InOperatorTests()

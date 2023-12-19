@@ -21,6 +21,7 @@ using System.Configuration.Provider;
 using Alachisoft.NCache.Runtime.CacheManagement;
 using System.CodeDom;
 using System.Linq;
+using System.Collections;
 
 namespace QueriesTestApplication
 {
@@ -264,6 +265,12 @@ namespace QueriesTestApplication
                 var cacheItem = _cache.GetCacheItem(key1);
 
                 var Attributes = cacheItem.NamedTags;
+
+                foreach (DictionaryEntry namedTag in Attributes)
+                {
+                    if (namedTag.Key.ToString() == "FlashDiscount" && namedTag.Value.ToString() != "NoFlashDiscount")
+                        throw new Exception("named tag is not updated ");
+                }
 
                 if (Attributes.Contains("Discount") && Attributes.Contains("FlashDiscount") && Attributes.Contains("Percentage"))
                 {
