@@ -1,6 +1,8 @@
 only group and tags are working in MetaVerificationInUpdateQuery
 items is added with named tag but select query says index not defined insertQueries.VerifyMetaData2()
 
+why this.Name = '\"{teaName}\"' inverted commas
+
 test on all topologies and binary cache
 
 set name = aqib will throw unexpected chacracter encountered exception.(\"aqib\" is correct )

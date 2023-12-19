@@ -4,6 +4,7 @@ using Alachisoft.NCache.Sample.Data;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace QueriesTestApplication
@@ -32,7 +33,7 @@ namespace QueriesTestApplication
         public void AddJsonArrayInline()
         {
 
-            var methodName = "AddJsonArrayInline";
+            var methodName = MethodBase.GetCurrentMethod().Name;
             try
             {
                 cache.Clear();
@@ -44,17 +45,17 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(insertQuery);
                 var insertresult = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var returned = cache.Get<JsonArray>(key);
 
-                if (returned != null)
+                var returned = new JsonArray(cache.Get<string>(key));
+
+                if (returned != null && returned[0].Value.ToString() == "ABC")
                 {
                     Console.WriteLine("Success: Add JSON Array with inline data");
                     testResults.Add(methodName, ResultStatus.Success);
                 }
                 else
                 {
-                    Console.WriteLine("Failure: Add JSON with inline data");
-                    testResults.Add(methodName, ResultStatus.Failure);
+                    throw new Exception("Failure: Add JSON with inline data");
                 }
             }
             catch (Exception ex)
@@ -126,7 +127,7 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(insertQuery);
                 var insertresult = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                var returned = cache.Get<JsonObject>(key);
+                var returned = new JsonObject(cache.Get<string>(key));
 
                 if (returned != null)
                 {
@@ -384,6 +385,11 @@ namespace QueriesTestApplication
                     }
 
                 }
+
+               // var key1 = GetKey() + "2";
+               // var cacheItem = cache.GetCacheItem(key1);
+               // cache.Remove(key1);
+               // cache.Add(key1,cacheItem);                
 
                 string searchQuery = "SELECT $Value$ FROM Alachisoft.Ncache.Sample.Data.Product WHERE FlashSaleDiscount = @discount ";
                 QueryCommand searchQueryCommand = new QueryCommand(searchQuery);

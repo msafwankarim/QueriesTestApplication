@@ -24,7 +24,7 @@ namespace QueriesTestApplication
 
                 Common.CacheName = "democache";
 
-                TempTests();
+               // TempTests();
 
                 // EscapeSequencesVerifier();
 
@@ -33,8 +33,11 @@ namespace QueriesTestApplication
 
                 //MetaVerificationInUpdateQuery();
                 //RunInsertQueriesTests();
+                //UpsertQueriesWithMeta();
+                //RunInlineQueryTestForUpdate();                
+               // RunInlineQueryTests();
 
-                UpsertQueriesWithMeta();
+                RunInlineQueryTestForUpdate0();
 
                 //RunMetaVerificationTests();
 
@@ -100,8 +103,9 @@ namespace QueriesTestApplication
                 {
                     mi.Invoke(metaTest, parameters);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Console.WriteLine("unhandeled exception" + $"{ex.Message}");
 
                 }
 
@@ -220,6 +224,34 @@ namespace QueriesTestApplication
 
         #region  --------------------------  UpdateQuery Tests --------------------------
 
+        private static void RunInlineQueryTestForUpdate0()
+        {
+            object[] parameters = null;
+            InlinePartialUpdates inlineQuerytests = new InlinePartialUpdates();
+
+            //inlineQuerytests.SetJsonArrayAtZerothIndex();
+
+            MethodInfo[] methodInfos = typeof(InlinePartialUpdates).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (var mi in methodInfos)
+            {
+                try
+                {
+                    mi.Invoke(inlineQuerytests, parameters);
+                }
+                catch (Exception ex)
+                {
+                    ReportHelper.PrintError(mi.Name + ex.Message);
+
+
+                }
+
+            }
+           
+            inlineQuerytests.Report.PrintReport();
+
+            PromptInputIfNeeded();
+        } 
+        
         private static void RunInlineQueryTestForUpdate()
         {
             object[] parameters = null;
@@ -234,8 +266,9 @@ namespace QueriesTestApplication
                 {
                     mi.Invoke(inlineQuerytests, parameters);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Console.WriteLine("unhandeled exception" + $"{ex.Message}");
 
                 }
 
@@ -418,7 +451,6 @@ namespace QueriesTestApplication
         #endregion
 
 
-
         #region -------------------------- Upsert tests --------------------------
         private static void UpsertQueriesWithMeta()
         {
@@ -454,6 +486,7 @@ namespace QueriesTestApplication
 
 
         #endregion
+
 
         private static void InOperatorTests()
         {

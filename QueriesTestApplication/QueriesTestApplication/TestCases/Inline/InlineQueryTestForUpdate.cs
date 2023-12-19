@@ -8,6 +8,7 @@ using QueriesTestApplication.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -20,7 +21,7 @@ namespace QueriesTestApplication
         int count = 0;
         List<Product> productList;
         List<Product> complexProductList;
-        Report _report;
+        readonly Report _report;
         public Report Report { get => _report; }
 
         public InlineQueryTestForUpdate()
@@ -45,7 +46,6 @@ namespace QueriesTestApplication
 
             foreach (var item in productList)
             {
-                // new JsonObject(JsonConvert.SerializeObject(item))
                 cache.Add("product" + item.Id, item);
             }
         }
@@ -179,7 +179,6 @@ namespace QueriesTestApplication
             }
         }
 
-
         //Test partial operation on arrays on base level
         public void BasicUpdateQuery9()
         {
@@ -246,9 +245,6 @@ namespace QueriesTestApplication
             }
         }
 
-
-
-
         public void BasicUpdateQuery10()
         {
 
@@ -284,7 +280,6 @@ namespace QueriesTestApplication
                 _report.AddFailedTestCase(methodName, ex);
             }
         }
-
 
         public void BasicUpdateQuery11()
         {
@@ -576,6 +571,84 @@ namespace QueriesTestApplication
 
 
 
+        #region  --------------------------------- Complex Query -----------------------------------
+
+        public void ComplexQuery()
+        {
+            int updated = 0;
+            productList.Clear();
+            PopulateProductList();
+            cache.Clear();
+            PopulateCache();
+            string methodName = MethodBase.GetCurrentMethod().Name;
+            int totalExpectedException = 1;
+
+            count++;
+            try
+            {
+                string nameThatDoesnotExist = "\"I drink two cups of tea daily.\"";
+                DateTime birthDayTime = new DateTime(2000, 1, 5);
+
+                string query = $"Update  Alachisoft.NCache.Sample.Data.Product " +
+                    $" Add nameThatDoesnotExist = '\"I do not exist\"' " +
+                    $" Test nameThatDoesnotExist = '\"I do not exist\"' " +
+                    $" Set Time = @birthDayTime " +
+                    $" Copy ClassName = Category " +
+                    $" Move Id = Order.OrderID " +
+                    $" Remove nameThatDoesnotExist " +
+                    $" Where Id = @id";
+
+
+                totalExpectedException = 0;
+
+                QueryCommand queryCommand = new QueryCommand(query);
+                queryCommand.Parameters.Add("@birthDayTime", birthDayTime);
+                queryCommand.Parameters.Add("@id", 1);
+
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out IDictionary dictionary);
+
+                if (updated == 0)
+                    throw new Exception("No key updated by complex query");
+
+                if (dictionary.Count != totalExpectedException)
+                    throw new Exception("Got more then expected exceptions in complex query");
+
+                Helper.ValidateDictionary(dictionary);
+
+                var jsonObject = cache.Get<JsonObject>("product1");
+
+                if (jsonObject.ContainsAttribute("nameThatDoesnotExist"))
+                    throw new Exception("Remove Operation failed in complex query");
+
+                var result = cache.Get<Product>("product1");
+                var updatedDate = result.Time;
+
+                if (updatedDate.Year != 2000 || updatedDate.Month != 1 || updatedDate.Day != 5)
+                    throw new Exception("Set Operation failed in complex query");
+
+                if (result.Category != "Beverages" || result.ClassName != "Beverages")
+                    throw new Exception("Copy Operation failed in complex query");
+
+                if (result.Id == default)
+                    throw new Exception("Move Operation failed in complex query");
+
+
+                _report.AddPassedTestCase(methodName, "complex query passed");
+
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+            }
+
+
+        }
+
+
+        #endregion
+
+
         #region ---------------------------- Combined Operations -------------------------
         public void BasicUpdateQuery3()
         {
@@ -587,13 +660,19 @@ namespace QueriesTestApplication
                 PopulateProductList();
                 cache.Clear();
                 PopulateCache();
-                string query = "Update  Alachisoft.NCache.Sample.Data.Product Set Name = '\"Tea\"', Order.ShipCity = '\"Lahore\"' Add Order.Type = '\"important\"' Set-meta $tag$ = '[\"prod\",\"price\"]', $ntag$ = '[{\"discount\":0.4,\"type\":\"decimal\"}]' where UnitPrice > ?";
+                string query = "Update  Alachisoft.NCache.Sample.Data.Product Set Name = '\"Tea\"', Order.ShipCity = '\"Lahore\"' Add Order.Type = '\"important\"' Set-meta $tag$ = '[\"prod\",\"price\"]', $namedtag$ = '[{\"discount\":0.4,\"type\":\"decimal\"}]' where UnitPrice > ?";
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("UnitPrice", Convert.ToDecimal(100));
                 var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 int reveived = 0;
+
+               
+
                 var returned = cache.SearchService.GetKeysByTag("price");
+
+                var cacheItem = cache.GetCacheItem(returned.FirstOrDefault().ToString());
+
                 if (returned.Count == updated)
                 {
                     string searchQuery = "SELECT $Value$ FROM Alachisoft.NCache.Sample.Data.Product WHERE discount = @discount ";
@@ -613,15 +692,20 @@ namespace QueriesTestApplication
                         }
                         if (reveived == updated)
                         {
-                            _report.AddPassedTestCase(methodName,"Success:Partial operations with meta data add with tags and named tags then retreive using tags and named tags");
-                          
+                            _report.AddPassedTestCase(methodName, "Success:Partial operations with meta data add with tags and named tags then retreive using tags and named tags");
+
                         }
+                        else
+                            throw new Exception("items not updated by query");
+
                     }
                     catch (Exception)
                     {
                         throw;
                     }
                 }
+                else
+                    throw new Exception("items not updated by query");
             }
             catch (Exception ex)
             {
