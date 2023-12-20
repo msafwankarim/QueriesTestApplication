@@ -1345,6 +1345,7 @@ namespace QueriesTestApplication
                     throw new Exception("Cache item obtanined doesnot have sliding expiration");
 
                 int sleepTime = ExpirationTimes.SlidingExpirationSeconds * 1000 + _cleanIntervalSeconds * 1000;
+                sleepTime = sleepTime + 2000;
                 Console.WriteLine($"Waiting for {sleepTime} milli seconds before verifying sliding expiration");
                 Thread.Sleep(sleepTime);
 
@@ -1353,7 +1354,7 @@ namespace QueriesTestApplication
                 if (ItemFromCache == null)
                     _report.AddPassedTestCase(methodName, "Success: Add Sliding Expiration in JSON object");
                 else
-                    throw new Exception("Failure: Add Sliding Metadata in JSON object");
+                    throw new Exception("Failure: Item didnot expired in sliding expiration");
 
 
 

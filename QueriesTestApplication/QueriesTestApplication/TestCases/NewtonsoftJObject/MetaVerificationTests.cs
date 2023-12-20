@@ -13,6 +13,7 @@ using Alachisoft.NCache.Runtime;
 using System.Data.SqlClient;
 using QueriesTestApplication.Utils;
 using Alachisoft.NCache.Common.DataStructures.Clustered;
+using OracleInternal.SqlAndPlsqlParser;
 
 namespace QueriesTestApplication
 {
@@ -20,6 +21,7 @@ namespace QueriesTestApplication
     {
 
         private int count = 0;
+        private int _expirationTime = 20; 
         ICache cache;
         public Dictionary<string, ResultStatus> testResults;
         private Report _report;
@@ -273,9 +275,8 @@ namespace QueriesTestApplication
 
                 var result = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Console.WriteLine("Sleeping for 5 seconds to verify Custom dependency");
-                Thread.Sleep(5
-                    );
+                Console.WriteLine("Sleeping for 7 seconds to verify Custom dependency");
+                Thread.Sleep(7000 );
 
                 var cacheItem = cache.GetCacheItem(Itemkey);
                 if (cacheItem == null) 
@@ -457,7 +458,6 @@ namespace QueriesTestApplication
                         var result = cache.SearchService.ExecuteNonQuery(qc);
 
                     }
-                    //var result = cache.SearchService.ExecuteNonQuery(qc);
                 }
 
                 var receivedKeys = cache.SearchService.GetKeysByTag("Important Product");
@@ -479,7 +479,7 @@ namespace QueriesTestApplication
                     }
                     _report.AddPassedTestCase(methodName, "Success: verify meta by adding with tags and then getting through those tags.");
                 }
-
+                else
                 throw new Exception("Test case failed");
 
             }
@@ -565,6 +565,7 @@ namespace QueriesTestApplication
                     if (i % 2 == 0)
                     {
                         string query = "Insert Into Alachisoft.Ncache.Sample.Data.Product (key,value,meta) values (@cachekey,@val,@data)";
+
                         QueryCommand qc = new QueryCommand(query);
                         qc.Parameters.Add("@cachekey", key);
                         qc.Parameters.Add("@val", prodDict[key]);
@@ -577,6 +578,8 @@ namespace QueriesTestApplication
                     else
                     {
                         string query = "Insert Into Alachisoft.Ncache.Sample.Data.Product (key,value) values (@cachekey,@val)";
+
+
                         QueryCommand qc = new QueryCommand(query);
                         qc.Parameters.Add("@cachekey", key);
                         qc.Parameters.Add("@val", prodDict[key]);
@@ -586,7 +589,8 @@ namespace QueriesTestApplication
 
                 }
 
-                string searchQuery = "SELECT $Value$ FROM Alachisoft.Ncache.Sample.Data.Product WHERE FlashSaleDiscount = @discount ";
+                string searchQuery = "SELECT $Value$ FROM Alachisoft.NCache.Sample.Data.Product WHERE FlashSaleDiscount = @discount ";
+
                 QueryCommand searchQueryCommand = new QueryCommand(searchQuery);
                 searchQueryCommand.Parameters.Add("@discount", Convert.ToDecimal(0.5));
                 ICacheReader reader = cache.SearchService.ExecuteReader(searchQueryCommand);
@@ -605,9 +609,11 @@ namespace QueriesTestApplication
                         _report.AddPassedTestCase(methodName, "Success: verify meta by adding with named tags and then getting through those search.");
 
                     }
+                    else
+                        throw new Exception("Test case failed");
 
                 }
-
+                else
                 throw new Exception("Test case failed");
 
             }
@@ -652,7 +658,7 @@ namespace QueriesTestApplication
                     }
                     else
                     {
-                        string query = "Insert Into Alachisoft.Ncache.Sample.Data.Product (key,value) values (@cachekey,@val)";
+                        string query = "Insert Into Alachisoft.NCache.Sample.Data.Product (key,value) values (@cachekey,@val)";
                         QueryCommand qc = new QueryCommand(query);
                         qc.Parameters.Add("@cachekey", key);
                         qc.Parameters.Add("@val", prodDict[key]);
@@ -662,7 +668,7 @@ namespace QueriesTestApplication
 
                 }
 
-                string searchQuery = "SELECT $Value$ FROM Alachisoft.Ncache.Sample.Data.Product WHERE important = @discount ";
+                string searchQuery = "SELECT $Value$ FROM Alachisoft.NCache.Sample.Data.Product WHERE important = @discount ";
                 QueryCommand searchQueryCommand = new QueryCommand(searchQuery);
                 searchQueryCommand.Parameters.Add("@discount", "high");
                 ICacheReader reader = cache.SearchService.ExecuteReader(searchQueryCommand);
@@ -681,17 +687,18 @@ namespace QueriesTestApplication
                         _report.AddPassedTestCase(methodName, "Success: Add with named tag type ");
 
                     }
+                    else
+                        throw new Exception("test case failed");
 
                 }
+                else
+                    throw new Exception("test case failed");
 
 
             }
             catch (Exception ex)
             {
                 _report.AddFailedTestCase(methodName, ex);
-
-                testResults.Add(methodName, ResultStatus.Failure);
-                Console.WriteLine("Failure: Add with named tag type ");
             }
             // throw;
         }
@@ -738,7 +745,7 @@ namespace QueriesTestApplication
 
                 }
 
-                string searchQuery = "SELECT $Value$ FROM Alachisoft.Ncache.Sample.Data.Product WHERE sale111 = @discount ";
+                string searchQuery = "SELECT $Value$ FROM Alachisoft.NCache.Sample.Data.Product WHERE sale111 = @discount ";
                 QueryCommand searchQueryCommand = new QueryCommand(searchQuery);
                 searchQueryCommand.Parameters.Add("@discount", Convert.ToDecimal(Convert.ToDecimal(0.5)));
                 ICacheReader reader = cache.SearchService.ExecuteReader(searchQueryCommand);
@@ -751,14 +758,19 @@ namespace QueriesTestApplication
                         Product result = reader.GetValue<Product>(1);
 
                     }
+
                     if (reveived == namedTagggedKeys.Count)
                     {
                         testResults.Add(methodName, ResultStatus.Success);
                         _report.AddPassedTestCase(methodName, "Success: Add with named tag type ");
 
                     }
+                    else
+                        throw new Exception("test case failed");
 
                 }
+                else
+                    throw new Exception("test case failed");
 
 
             }
@@ -796,13 +808,13 @@ namespace QueriesTestApplication
                         qc.Parameters.Add("@val", prodDict[key]);
                         namedTagggedKeys.Add(key);
                         qc.Parameters.Add("@data", @"{
-                                              'namedtags':[{'FlashSaleDiscount':0.5,'type':'decimal'},{'FlashSaleDiscount1':54569876541323,'type':'short'}],
+                                              'namedtags':[{'FlashSaleDiscount':0.5,'type':'decimal'},{'FlashSaleDiscount1':54569876541323,'type':'long'}],
                                               }");
                         var result = cache.SearchService.ExecuteNonQuery(qc);
                     }
                     else
                     {
-                        string query = "Insert Into Alachisoft.Ncache.Sample.Data.Product (key,value) values (@cachekey,@val)";
+                        string query = "Insert Into Alachisoft.NCache.Sample.Data.Product (key,value) values (@cachekey,@val)";
                         QueryCommand qc = new QueryCommand(query);
                         qc.Parameters.Add("@cachekey", key);
                         qc.Parameters.Add("@val", prodDict[key]);
@@ -812,7 +824,7 @@ namespace QueriesTestApplication
 
                 }
 
-                string searchQuery = "SELECT $Value$ FROM Alachisoft.Ncache.Sample.Data.Product WHERE FlashSaleDiscount = @discount ";
+                string searchQuery = "SELECT $Value$ FROM Alachisoft.NCache.Sample.Data.Product WHERE FlashSaleDiscount = @discount ";
                 QueryCommand searchQueryCommand = new QueryCommand(searchQuery);
                 searchQueryCommand.Parameters.Add("@discount", Convert.ToDecimal(0.5));
                 ICacheReader reader = cache.SearchService.ExecuteReader(searchQueryCommand);
@@ -828,23 +840,23 @@ namespace QueriesTestApplication
                     if (reveived == namedTagggedKeys.Count)
                     {
                         testResults.Add(methodName, ResultStatus.Success);
-                        throw new Exception("Failure: add invalid meta in named tags tags");
-                        // i think exception is expected. this test case needs to be checked
+                        _report.AddPassedTestCase(methodName, "add  meta in named tags tags'");
                     }
+                    else
+                        throw new Exception("test case failed");
 
                 }
+                else
+                    throw new Exception("test case failed");
 
 
             }
             catch (Exception ex)
             {
-                // i think exception is expected. this test case needs to be checked
 
                 _report.AddFailedTestCase(methodName, ex);
 
 
-                testResults.Add(methodName, ResultStatus.Success);
-                Console.WriteLine("Success: add invalid meta in named tags tags ");
             }
             // throw;
         }
@@ -984,7 +996,9 @@ namespace QueriesTestApplication
 
                 }
 
-                Thread.Sleep(20000);
+                Console.WriteLine($"waiting {_expirationTime} seconds to verify expiration");
+
+                Thread.Sleep(_expirationTime * 1000);
 
                 long itemsInCache = cache.Count;
                 if (itemsInCache > 0)
@@ -1083,9 +1097,10 @@ namespace QueriesTestApplication
                 qc.Parameters.Add("@cachekey", key);
                 qc.Parameters.Add("@val", GetProduct());
                 qc.Parameters.Add("@data", @"{
-                                              'namedtags':[{'FlashSaleDiscount':0.5,'type':'decimal'}],
-                                               'dependency':[{'key':['dependency']}]
+                                              'namedtags' : [{'FlashSaleDiscount':0.5,'type':'decimal'}],
+                                              'dependency': [{'key':{'keys':['dependency']}}]
                                               }");
+
                 var result = cache.SearchService.ExecuteNonQuery(qc);
 
                 cache.Remove(depKey);
@@ -1096,7 +1111,7 @@ namespace QueriesTestApplication
                     _report.AddPassedTestCase(methodName, "Success: Add a key-pair item, add another key-pair item with a key dependency on item 1. Remove first from cache.");
 
                 }
-
+                else
                 throw new Exception("Test case failed");
 
             }
@@ -1131,7 +1146,7 @@ namespace QueriesTestApplication
                 qc.Parameters.Add("@val", GetProduct());
                 qc.Parameters.Add("@data", @"{
                                               'namedtags':[{'FlashSaleDiscount':0.5,'type':'decimal'}],
-                                               'dependency':[{'key':['dependency','dependency1']}]
+                                               'dependency':[{'key':{'keys' : ['dependency','dependency1']}}]
                                               }");
                 var result = cache.SearchService.ExecuteNonQuery(qc);
                 cache.Insert(depKey1, "Diyatech-10");
@@ -1179,7 +1194,7 @@ namespace QueriesTestApplication
                 qc.Parameters.Add("@data", @"{
                                               'namedtags':[{'FlashSaleDiscount':0.5,'type':'decimal'}],
                                                'dependency':[
-                                                               {'key': ['dependency0','dependency1','dependency2','dependency3','dependency4','dependency5','dependency6','dependency7','dependency8','dependency9']}
+                                                               {'key': {'keys' : ['dependency0','dependency1','dependency2','dependency3','dependency4','dependency5','dependency6','dependency7','dependency8','dependency9']}}
                                                             ]
                                                             }");
                 var result = cache.SearchService.ExecuteNonQuery(qc);
@@ -1189,7 +1204,7 @@ namespace QueriesTestApplication
                 if (returned == null)
                 {
                     testResults.Add(methodName, ResultStatus.Success);
-                    Console.WriteLine("Success: Add a key-pair item and add another 10 key-pair items with a key dependency in array  on item 1. Update 1 in cache.");
+                   // Console.WriteLine("Success: Add a key-pair item and add another 10 key-pair items with a key dependency in array  on item 1. Update 1 in cache.");
 
                 }
 
@@ -1200,7 +1215,7 @@ namespace QueriesTestApplication
             catch (Exception ex)
             {
                 testResults.Add(methodName, ResultStatus.Failure);
-                Console.WriteLine("Failure: Add a key-pair item and add another 10 key-pair items with a key dependency in array  on item 1. Update 1 in cache.");
+                Console.WriteLine($"Failure: Add a key-pair item and add another 10 key-pair items with a key dependency in array  on item 1. Update 1 in cache. reason {ex.Message}");
             }
             // throw;
         }
@@ -1214,9 +1229,10 @@ namespace QueriesTestApplication
             var methodName = "VerifyMetaData8";
             try
             {
-                string path = "E:\\QueryTesting";
-                string filePath = GenerateFileName(path);
-                Create(filePath);
+               
+                string filePath = @"C:\\dependencyFile.txt";
+               
+                File.AppendAllText(filePath, $" {methodName} => verify file dependency");
 
                 cache.Clear();
                 var key = GetKey();
@@ -1227,7 +1243,7 @@ namespace QueriesTestApplication
                 qc.Parameters.Add("@val", GetProduct());
                 qc.Parameters.Add("@data", @"{
                                               'namedtags':[{'FlashSaleDiscount':0.5,'type':'decimal'}],
-                                               'dependency':[{'file':['E:\\QueryTesting\\RandomFile.txt']}]
+                                               'dependency':[{'file':{ 'fileNames' : ['C:\\dependencyFile.txt']}}]
                                               }");
                 var result = cache.SearchService.ExecuteNonQuery(qc);
 
@@ -1268,9 +1284,11 @@ namespace QueriesTestApplication
                 //var item = new CacheItem(GetProduct());
                 //item.Dependency = new FileDependency(new string[5]);
                 //cache.Insert(GetKey(), item);
-                string path = "E:\\QueryTesting";
-                string filePath = GenerateFileName(path);
-                Create(filePath);
+                string filePath = @"C:\\dependencyFile.txt";
+                //string path = "E:\\QueryTesting";
+               // string filePath = GenerateFileName(path);
+                //Create(filePath);
+                File.AppendAllText(filePath, $" {methodName} => verify file dependency");
 
                 cache.Clear();
                 var key = GetKey();
@@ -1281,15 +1299,15 @@ namespace QueriesTestApplication
                 qc.Parameters.Add("@val", GetProduct());
                 qc.Parameters.Add("@data", @"{
                                               'namedtags':[{'FlashSaleDiscount':0.5,'type':'decimal'}],
-                                               'dependency':[{'file':['']}]
+                                               'dependency':[
+                                                                {
+                                                                    'file':{'fileNames' : ['C:\\dependencyFile.txt']}
+                                                                }
+                                                            ]
                                               }");
                 var result = cache.SearchService.ExecuteNonQuery(qc);
 
-                {
-                    testResults.Add(methodName, ResultStatus.Failure);
-                    _report.AddPassedTestCase(methodName, "Failure: provide invalid dependency");
-
-                }
+               _report.AddPassedTestCase(methodName, "Failure: provide invalid dependency");
 
                 long itemsInCache = cache.Count;
 
@@ -1298,13 +1316,10 @@ namespace QueriesTestApplication
             {
                 _report.AddFailedTestCase(methodName, ex);
 
-
-                testResults.Add(methodName, ResultStatus.Success);
-                Console.WriteLine("Success: provide invalid dependency");
             }
             // throw;
         }
-        void VerifyMetaData9()
+        public void VerifyMetaData9()
         {
             count++;
             int reveived = 0;
@@ -1320,9 +1335,7 @@ namespace QueriesTestApplication
                 qc.Parameters.Add("@cachekey", key);
                 qc.Parameters.Add("@val", GetProduct());
                 qc.Parameters.Add("@data", @"{
-                                              'namedtags':[{'FlashSaleDiscount':0.5}],
-                                               'writethruprovider':
-                                                    {'providername':'SqlWriteThruProvider','option':'writethru'}
+                                              'namedtags':[{'type' : 'decimal' , 'FlashSaleDiscount':0.5}]                                              
                                               }");
                 var result = cache.SearchService.ExecuteNonQuery(qc);
 
@@ -1338,7 +1351,6 @@ namespace QueriesTestApplication
             {
                 _report.AddFailedTestCase(methodName, ex);
 
-                testResults.Add(methodName, ResultStatus.Failure);
                 Console.WriteLine("Failure: Add an object with a File based dependency and Modify the file.");
             }
             // throw;

@@ -1,22 +1,17 @@
-items is added with named tag but select query says index not defined insertQueries.VerifyMetaData2()
+listen queries meeting minutes at sania pdc
 
 why this.Name = '\"{teaName}\"' inverted commas
 
-test on all topologies and binary cache
-
-set name = aqib will throw unexpected chacracter encountered exception.(\"aqib\" is correct )
 
 no summary for query service API 
-     
+insertQueriesTest.AddJsonObject(); todo needs to be fixed date issue
        
-test with binary cache
+test on all topologies and binary cache
 test without query indexing
 dedicated call
  
 Update statement is only supported on JSON serialized cache. exception in insert query
 
-date time issue 
 insert queries have comma issue while specifying values . also remove-meta and set-meta
 
-verify tag is given in service  <add key="NCache.ParserBufferSize" value="1024"/>
-         
+verify tag is given in service  <add key="NCache.ParserBufferSize" value="1024"/> in setup

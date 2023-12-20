@@ -1098,7 +1098,7 @@ namespace QueriesTestApplication
 
                 var item = cache.GetCacheItem(GetKey() + "2");
 
-                string searchQuery = "SELECT $Value$ FROM Alachisoft.Ncache.Sample.Data.Product WHERE FlashSaleDiscount = @discount ";
+                string searchQuery = "SELECT $Value$ FROM Alachisoft.NCache.Sample.Data.Product WHERE FlashSaleDiscount = @discount ";
                 QueryCommand searchQueryCommand = new QueryCommand(searchQuery);
                 searchQueryCommand.Parameters.Add("@discount", Convert.ToDecimal(0.5));
                 ICacheReader reader = cache.SearchService.ExecuteReader(searchQueryCommand);
@@ -1116,8 +1116,13 @@ namespace QueriesTestApplication
                         testResults.Add(methodName, ResultStatus.Success);
                         _report.AddPassedTestCase(methodName, "Success: verify meta by adding with named tags and then getting through those search.");
                     }
+                    else
+                        throw new Exception("test case failed");
+
 
                 }
+                else
+                    throw new Exception("reader field count is 0");
 
             }
             catch (Exception ex)

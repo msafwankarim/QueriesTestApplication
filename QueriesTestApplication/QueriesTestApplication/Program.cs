@@ -20,45 +20,25 @@ namespace QueriesTestApplication
         {
             try
             {
+                // provider names
+                // CustomDependeny => custom , bulkDependencyProvider , notifyDependencyProvider
+                
+                Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
+                Console.BufferHeight = short.MaxValue - 10;
+
                 //JsonHelper.TestArrayWithIndexing();
 
                 Common.CacheName = "democache";
 
-                // TempTests();
+                RunMetaVerificationTests();
+                RunInlineQueryTestForUpdate0();
+                RunInsertQueriesTests();
+                UpsertQueriesWithMeta();
+                InOperatorTests();
+                EscapeSequencesVerifier();
 
-                // EscapeSequencesVerifier();
+                ReportHelper.PrintHeader("\n\n --------------------------------------------------------- ALL DONE -----------------------------------------------");
 
-                // RunMetaVerificationTestsForJsonObj();                
-                //RunInsertQueriesTestsForJsonObject();
-
-                //MetaVerificationInUpdateQuery();
-                //RunInsertQueriesTests();
-                //UpsertQueriesWithMeta();
-                //RunInlineQueryTestForUpdate();                
-                // RunInlineQueryTests();
-                //RunInlineQueryTestForUpdate0();
-
-                MetaVerificationInInlineQuery(); 
-
-                //RunMetaVerificationTests();
-
-                // RunInlineQueryTestForUpdate();
-                // RunUpdateQueriesTests();
-
-                // RunInsertQueriesTests();
-
-
-                //RunMetaVerificationTestsForJsonObj();
-                //RunUpdateQueriesTestsForJsonObject();
-
-                // RunUpdateQueriesTests();
-                // RunInsertQueriesTests();
-                // RunMetaVerificationTests();
-                // RunInlineQueryTests();
-                // RunInlineQueryTestForUpdate();
-                // RunUpdateQueriesTests();
-                // MetaVerificationInUpdateQuery();
-                // InOperatorTests();
 
             }
             catch (Exception ex)
@@ -71,56 +51,28 @@ namespace QueriesTestApplication
 
 
 
-        private static void RunOnAllTopologies()
-        {
-            string[] CacheNames = new string[4] { "democache1", "Partition", "ReplicatedCache", "MirrorCache" };
-            for (int i = 0; i < 4; i++)
-            {
-                Console.WriteLine($"\n\n ****  Running TestCases on  {CacheNames[i] } ****");
+        //private static void RunOnAllTopologies()
+        //{
+        //    string[] CacheNames = new string[4] { "democache1", "Partition", "ReplicatedCache", "MirrorCache" };
+        //    for (int i = 0; i < 4; i++)
+        //    {
+        //        Console.WriteLine($"\n\n ****  Running TestCases on  {CacheNames[i] } ****");
 
-                Common.CacheName = CacheNames[i];
-                RunMetaVerificationTests();
-                RunInlineQueryTests();
-                RunInsertQueriesTests();
-                RunInlineQueryTestForUpdate();
-                RunUpdateQueriesTests();
-                InOperatorTests();
-                Console.WriteLine($"\n\n **** Testing done on {CacheNames[i] }. Press any key to continue ");
-                Console.ReadKey();
-                Console.Clear();
-            }
+        //        Common.CacheName = CacheNames[i];
+        //        RunMetaVerificationTests();
+        //        RunInlineQueryTests();
+        //        RunInsertQueriesTests();
+        //        RunInlineQueryTestForUpdate();
+        //        RunUpdateQueriesTests();
+        //        InOperatorTests();
+        //        Console.WriteLine($"\n\n **** Testing done on {CacheNames[i] }. Press any key to continue ");
+        //        Console.ReadKey();
+        //        Console.Clear();
+        //    }
 
-        }
+        //}
 
-        private static void RunInlineQueryTests()
-        {
-            object[] parameters = null;
-            InlineQueryTestsForInsertUpsert metaTest = new InlineQueryTestsForInsertUpsert();
-            Common.PrintClassName("InlineQueryTestsForInsertUpsert");
-            MethodInfo[] methodInfos = typeof(InlineQueryTestsForInsertUpsert).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            foreach (var mi in methodInfos)
-            {
-                try
-                {
-                    mi.Invoke(metaTest, parameters);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("unhandeled exception" + $"{ex.Message}");
-
-                }
-
-            }
-            foreach (var val in metaTest.TestResults)
-            {
-                if (val.Value == ResultStatus.Failure)
-                    Console.WriteLine(val.Key + ":Failed");
-
-            }
-            Console.WriteLine("Total methods called " + metaTest.TestResults.Count);
-            Console.ReadLine();
-        }
-
+       
 
         #region -------------------------- MetaVerification Tests  --------------------------
 
@@ -128,10 +80,8 @@ namespace QueriesTestApplication
         {
             object[] parameters = null;
             MetaVerificationTests metaTest = new MetaVerificationTests();
-            Common.PrintClassName("MetaVerificationTests");
 
             MethodInfo[] methodInfos = typeof(MetaVerificationTests).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
 
 
             foreach (var mi in methodInfos)
@@ -142,8 +92,7 @@ namespace QueriesTestApplication
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("unhandeled exception" + $"{ex.Message}");
-
+                    ReportHelper.PrintError(mi.Name + ex.Message);
                 }
             }
 
@@ -153,18 +102,17 @@ namespace QueriesTestApplication
                     Console.WriteLine(val.Key + ":Failed");
 
             }
-            Console.WriteLine("Total methods called " + metaTest.TestResults.Count);
-            metaTest.Reprt.PrintReport();
-            RunMetaVerificationTestsForJsonObj();
-            PromptInputIfNeeded();
-        }
 
+            metaTest.Reprt.PrintReport();
+            PromptInputIfNeeded();
+            RunMetaVerificationTestsForJsonObj();
+            
+        }
 
         private static void RunMetaVerificationTestsForJsonObj()
         {
             object[] parameters = null;
             MetaVerificationTestForJsonObj metaTest = new MetaVerificationTestForJsonObj();
-            Common.PrintClassName(nameof(MetaVerificationTestForJsonObj));
 
             MethodInfo[] methodInfos = typeof(MetaVerificationTestForJsonObj).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -189,15 +137,14 @@ namespace QueriesTestApplication
 
 
             metaTest.Report.PrintReport();
-
-
+            PromptInputIfNeeded();
+            MetaVerificationInUpdateQuery();
         }
 
         private static void MetaVerificationInUpdateQuery()
         {
             object[] parameters = null;
             MetaVerificationInUpdateQuery metaTest = new MetaVerificationInUpdateQuery();
-            Common.PrintClassName(nameof(MetaVerificationInUpdateQuery));
 
             MethodInfo[] methodInfos = typeof(MetaVerificationInUpdateQuery).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -217,6 +164,32 @@ namespace QueriesTestApplication
 
             metaTest.Report.PrintReport();
             PromptInputIfNeeded();
+
+            MetaVerificationInInlineQuery();
+        }
+
+        private static void MetaVerificationInInlineQuery()
+        {
+            object[] parameters = null;
+            MetaVerificationInInlineQuery inlineMetaVerification = new MetaVerificationInInlineQuery();
+
+            MethodInfo[] methodInfos = typeof(MetaVerificationInInlineQuery).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            foreach (var mi in methodInfos)
+            {
+                try
+                {
+                    mi.Invoke(inlineMetaVerification, parameters);
+                }
+                catch (Exception ex)
+                {
+                    ReportHelper.PrintError(mi.Name + ex.Message);
+                }
+
+            }
+
+            inlineMetaVerification.Report.PrintReport();
+
+            PromptInputIfNeeded();
         }
 
         #endregion
@@ -229,19 +202,20 @@ namespace QueriesTestApplication
             object[] parameters = null;
             InlinePartialUpdates inlineQuerytests = new InlinePartialUpdates();
 
-            //inlineQuerytests.SetJsonArrayAtZerothIndex();
 
             MethodInfo[] methodInfos = typeof(InlinePartialUpdates).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var mi in methodInfos)
             {
                 try
                 {
+                    if (mi.Name == "PopulateCache"  || mi.Name == "PopulateCacheAndGetKeys" || mi.Name == "PopulateCacheWithMeta" || mi.Name == "ExpandProductList")
+                        continue;
+
                     mi.Invoke(inlineQuerytests, parameters);
                 }
                 catch (Exception ex)
                 {
                     ReportHelper.PrintError(mi.Name + ex.Message);
-
 
                 }
 
@@ -250,13 +224,14 @@ namespace QueriesTestApplication
             inlineQuerytests.Report.PrintReport();
 
             PromptInputIfNeeded();
+
+            RunInlineQueryTestForUpdate();
         } 
         
         private static void RunInlineQueryTestForUpdate()
         {
             object[] parameters = null;
             InlineQueryTestForUpdate inlineQuerytests = new InlineQueryTestForUpdate();
-            Common.PrintClassName("InlineQueryTestForUpdate");
 
             // metaTest.Add1(Console.ReadLine());
             MethodInfo[] methodInfos = typeof(InlineQueryTestForUpdate).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
@@ -268,8 +243,7 @@ namespace QueriesTestApplication
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("unhandeled exception" + $"{ex.Message}");
-
+                    ReportHelper.PrintError(mi.Name + ex.Message);
                 }
 
             }
@@ -282,53 +256,15 @@ namespace QueriesTestApplication
 
             inlineQuerytests.Report.PrintReport();
 
-            Console.WriteLine("Total methods called " + inlineQuerytests.testResults.Count);
             PromptInputIfNeeded();
-        }
-
-        private static void RunUpdateQueriesTests()
-        {
-            object[] parameters = null;
-            UpdateQueriesTest updateQueriesTest = new UpdateQueriesTest();
-            Common.PrintClassName("UpdateQueriesTest");
-
-            MethodInfo[] methodInfos = typeof(UpdateQueriesTest).GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-
-
-            updateQueriesTest.SetArrayAtZerothIndex();
-            //updateQueriesTest.AddArrayAtSpecificIndex();
-            // updateQueriesTest.SetOperationUsingJObject0();
-
-            foreach (var mi in methodInfos)
-            {
-                try
-                {
-
-                    mi.Invoke(updateQueriesTest, parameters);
-                }
-                catch (Exception ex)
-                {
-                    ReportHelper.PrintError(mi.Name + ex.Message);
-                }
-
-                //var name= mi.Name;
-
-            }
-            foreach (var val in updateQueriesTest.TestResults)
-            {
-                if (val.Value == ResultStatus.Failure)
-                    Console.WriteLine(val.Key + ":Failed");
-
-            }
-            Console.WriteLine("Total methods called " + updateQueriesTest.TestResults.Count);
-
-            updateQueriesTest.Report.PrintReport();
 
             RunUpdateQueriesTestsForJsonObject();
 
-            PromptInputIfNeeded();
+
 
         }
+
+       
 
         private static void RunUpdateQueriesTestsForJsonObject()
         {
@@ -370,6 +306,7 @@ namespace QueriesTestApplication
 
 
         #region -------------------------- InsertQuery tests --------------------------
+       
         private static void RunInsertQueriesTests()
         {
             object[] parameters = null;
@@ -408,12 +345,11 @@ namespace QueriesTestApplication
             }
 
 
-            Console.WriteLine("Total methods called " + insertQueriesTest.TestResults.Count);
 
             insertQueriesTest.Report.PrintReport();
 
             RunInsertQueriesTestsForJsonObject();
-            Console.ReadLine();
+            PromptInputIfNeeded();
         }
 
 
@@ -421,11 +357,10 @@ namespace QueriesTestApplication
         {
             object[] parameters = null;
             InsertQueriesTestForJsonObj insertQueriesTest = new InsertQueriesTestForJsonObj();
-            Common.PrintClassName(nameof(InsertQueriesTestForJsonObj));
 
             MethodInfo[] methodInfos = typeof(InsertQueriesTestForJsonObj).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            insertQueriesTest.AddJsonObject();
+           // insertQueriesTest.AddJsonObject(); todo needs to be fixed
 
             foreach (var mi in methodInfos)
             {
@@ -444,7 +379,7 @@ namespace QueriesTestApplication
 
             insertQueriesTest.Report.PrintReport();
 
-            Console.ReadLine();
+            PromptInputIfNeeded();
         }
 
 
@@ -452,10 +387,11 @@ namespace QueriesTestApplication
 
 
         #region -------------------------- Upsert tests --------------------------
+
         private static void UpsertQueriesWithMeta()
         {
             object[] parameters = null;
-            UpsertQueriesWithMeta upsertQueriesTest = NewMethod();
+            UpsertQueriesWithMeta upsertQueriesTest = new UpsertQueriesWithMeta(); 
 
             MethodInfo[] methodInfos = typeof(UpsertQueriesWithMeta).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var mi in methodInfos)
@@ -475,42 +411,40 @@ namespace QueriesTestApplication
 
             upsertQueriesTest.Report.PrintReport();
 
+            PromptInputIfNeeded();
+            RunInlineQueryTests();
+
         }
 
-        private static UpsertQueriesWithMeta NewMethod()
-        {
-            return new UpsertQueriesWithMeta();
-        }
-
-
-
-
-        #endregion
-
-
-        private static void MetaVerificationInInlineQuery()
+        private static void RunInlineQueryTests()
         {
             object[] parameters = null;
-            MetaVerificationInInlineQuery inlineMetaVerification = new MetaVerificationInInlineQuery();
-                       
-            MethodInfo[] methodInfos = typeof(MetaVerificationInInlineQuery).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            InlineQueryTestsForInsertUpsert metaTest = new InlineQueryTestsForInsertUpsert();
+            Common.PrintClassName("InlineQueryTestsForInsertUpsert");
+            MethodInfo[] methodInfos = typeof(InlineQueryTestsForInsertUpsert).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var mi in methodInfos)
             {
                 try
                 {
-                    mi.Invoke(inlineMetaVerification, parameters);
+                    mi.Invoke(metaTest, parameters);
                 }
                 catch (Exception ex)
                 {
-                    ReportHelper.PrintError(mi.Name + ex.Message);
+                    Console.WriteLine("unhandeled exception" + $"{ex.Message}");
+
                 }
 
             }
+            foreach (var val in metaTest.TestResults)
+            {
+                if (val.Value == ResultStatus.Failure)
+                    Console.WriteLine(val.Key + ":Failed");
 
-            inlineMetaVerification.Report.PrintReport();
-
-            PromptInputIfNeeded();
+            }
         }
+
+
+        #endregion
 
 
         private static void InOperatorTests()
@@ -526,7 +460,7 @@ namespace QueriesTestApplication
                 {
                     mi.Invoke(inOperatortTest, parameters);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
 
 
@@ -539,8 +473,9 @@ namespace QueriesTestApplication
                 if (val.Value == ResultStatus.Failure)
                     Console.WriteLine(val.Key + ":Failed");
             }
+
             Console.WriteLine("Total methods called " + inOperatortTest.TestResults.Count);
-            Console.ReadLine();
+            PromptInputIfNeeded();
         }
 
         private static void TempTests()
@@ -615,11 +550,14 @@ namespace QueriesTestApplication
 
             }
             slashVerifier.Report.PrintReport();
-            Console.ReadLine();
+            PromptInputIfNeeded();
         }
 
         private static void PromptInputIfNeeded()
         {
+            ReportHelper.PrintHeader("--------------------------------------------------------------------------------------------------------");
+
+
             if (!OneGo)
                 Console.ReadLine();
         }

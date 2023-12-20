@@ -385,13 +385,9 @@ namespace QueriesTestApplication
                     }
 
                 }
+               
 
-               // var key1 = GetKey() + "2";
-               // var cacheItem = cache.GetCacheItem(key1);
-               // cache.Remove(key1);
-               // cache.Add(key1,cacheItem);                
-
-                string searchQuery = "SELECT $Value$ FROM Alachisoft.Ncache.Sample.Data.Product WHERE FlashSaleDiscount = @discount ";
+                string searchQuery = "SELECT $Value$ FROM Alachisoft.NCache.Sample.Data.Product WHERE FlashSaleDiscount = @discount ";
                 QueryCommand searchQueryCommand = new QueryCommand(searchQuery);
                 searchQueryCommand.Parameters.Add("@discount", Convert.ToDecimal(0.5));
                 ICacheReader reader = cache.SearchService.ExecuteReader(searchQueryCommand);
@@ -413,7 +409,7 @@ namespace QueriesTestApplication
             catch (Exception ex)
             {
                 testResults.Add(methodName, ResultStatus.Failure);
-                Console.WriteLine("Failure: verify meta by adding with tags and then getting through those tags.");
+                Console.WriteLine($"Failure: verify meta by adding with tags and then getting through those tags.  => {ex.Message}");
             }
         }
 

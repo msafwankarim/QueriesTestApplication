@@ -11,7 +11,13 @@ namespace QueriesTestApplication.Utils
         {
             "PopulateCacheParameter count mismatch.",
             "PopulateCacheAndGetKeysParameter count mismatch.",
-            "EqualsParameter count mismatch."
+            "EqualsParameter count mismatch.",
+
+            "GetDictionaryOfProductsToAddParameter count mismatch.", // MetaVerificationTests
+            "GenerateFileNameParameter count mismatch.",
+            "CreateParameter count mismatch.",
+            "DeleteParameter count mismatch.",
+            "ModifyParameter count mismatch."
         };
 
         

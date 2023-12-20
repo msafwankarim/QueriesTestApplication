@@ -53,13 +53,14 @@ namespace QueriesTestApplication
         /// Inserts 5000 Items in cache.
         /// Then copies value of Order.ShipCity to Order.ShipCountry for all 5000 objects, using Move.
         /// </summary>
-        private void CopyQuery1()
+        public void CopyQuery1()
         {
             int updated = 0;
             cache.Clear();
             // PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(CopyQuery1);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
 
             for (int i = 0; i < 5000; i++)
@@ -132,7 +133,7 @@ namespace QueriesTestApplication
             cache.Clear();
             // PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(CopyQuery1);
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
 
             for (int i = 0; i < 5000; i++)
@@ -206,7 +207,8 @@ namespace QueriesTestApplication
             cache.Clear();
             // PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(CopyQuery1);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
 
             for (int i = 0; i < 5000; i++)
@@ -288,7 +290,7 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = "CopyQuery";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {
@@ -340,7 +342,7 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = "CopyQuery";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {
@@ -384,7 +386,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = "CopyQuery";
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -466,7 +469,8 @@ namespace QueriesTestApplication
             cache.Clear();
             // PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(CopyQuery1);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
 
             for (int i = 0; i < 5000; i++)
@@ -511,7 +515,8 @@ namespace QueriesTestApplication
             cache.Clear();
             // PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(CopyQuery1);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
 
             for (int i = 0; i < 5000; i++)
@@ -565,7 +570,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(MoveQuery);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -619,7 +625,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(MoveQuery);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -675,7 +682,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(MoveQuery);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -718,7 +726,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(MoveQuery);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -773,7 +782,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(MoveQuery);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -816,7 +826,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = nameof(MoveQuery);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -858,7 +869,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = "MoveQuery";
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -902,7 +914,8 @@ namespace QueriesTestApplication
             cache.Clear();
             PopulateCache();
             string ProductKey = "product1";
-            string methodName = "MoveQuery";
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             count++;
             try
             {
@@ -1103,7 +1116,7 @@ namespace QueriesTestApplication
             int updated = 0;
             cache.Clear();
             PopulateCache();
-            string methodName = "SetOperationUsingJObject";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
 
             try
@@ -2464,7 +2477,7 @@ namespace QueriesTestApplication
         public void BasicUpdateQuery10()
         {
 
-            string methodName = "BasicUpdateQuery10";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {
@@ -2501,7 +2514,7 @@ namespace QueriesTestApplication
         public void BasicUpdateQuery11()
         {
 
-            string methodName = "BasicUpdateQuery11";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {
@@ -2539,7 +2552,7 @@ namespace QueriesTestApplication
         //Verify new behaviour that exception is thrown on first exception.
         public void BasicUpdateQuery13()
         {
-            string methodName = "BasicUpdateQuery13";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {
@@ -2571,7 +2584,7 @@ namespace QueriesTestApplication
         public void BasicUpdateQuery14()
         {
 
-            string methodName = "BasicUpdateQuery14";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {
@@ -2609,7 +2622,7 @@ namespace QueriesTestApplication
 
         public void BasicUpdateQuery16()
         {
-            string methodName = "BasicUpdateQuery16";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {
@@ -2665,7 +2678,7 @@ namespace QueriesTestApplication
 
         public void BasicUpdateQuery19()
         {
-            string methodName = "BasicUpdateQuery19";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {
@@ -2724,7 +2737,8 @@ namespace QueriesTestApplication
         public void BasicUpdateQuery22()
         {
             cache.Clear();
-            string methodName = nameof(BasicUpdateQuery22);
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
             try
             {
                 PopulateCache();
@@ -3183,7 +3197,6 @@ namespace QueriesTestApplication
         #endregion
 
 
-
         #region --------------------------------- Combination of Partial Operations ---------------------------------
 
         public void TestOperationUsingJObject2()
@@ -3235,7 +3248,7 @@ namespace QueriesTestApplication
             int updated = 0;
             cache.Clear();
             PopulateCache();
-            string methodName = "BasicUpdateQuery0";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {
@@ -3282,7 +3295,7 @@ namespace QueriesTestApplication
         // Partial Update items using query
         public void BasicUpdateQuery1()
         {
-            string methodName = "BasicUpdateQuery1";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {
@@ -3313,8 +3326,7 @@ namespace QueriesTestApplication
         // Partial Update items using query where one partial operation should fail
         public void BasicUpdateQuery2()
         {
-            string methodName = "BasicUpdateQuery2";
-            count++;
+            string methodName = MethodBase.GetCurrentMethod().Name; count++;
             try
             {
                 cache.Clear();
@@ -3344,8 +3356,7 @@ namespace QueriesTestApplication
         //case sensitivity is an issue
         public void BasicUpdateQuery3()
         {
-            string methodName = "BasicUpdateQuery3";
-            count++;
+            string methodName = MethodBase.GetCurrentMethod().Name; count++;
             try
             {
                 cache.Clear();
@@ -3379,8 +3390,7 @@ namespace QueriesTestApplication
         public void BasicUpdateQuery4()
         {
             productList.Clear();
-            string methodName = "BasicUpdateQuery4";
-            count++;
+            string methodName = MethodBase.GetCurrentMethod().Name; count++;
             try
             {
 
@@ -3439,7 +3449,7 @@ namespace QueriesTestApplication
         public void BasicUpdateQuery8()
         {
 
-            string methodName = "BasicUpdateQuery8";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {
@@ -3477,7 +3487,7 @@ namespace QueriesTestApplication
 
         public void BasicUpdateQuery12()
         {
-            string methodName = "BasicUpdateQuery12";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {
@@ -3634,7 +3644,7 @@ namespace QueriesTestApplication
         //no partial operation can exist for more than once 
         public void BasicUpdateQuery21()
         {
-            string methodName = "BasicUpdateQuery21";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {
@@ -3716,7 +3726,7 @@ namespace QueriesTestApplication
         //Populate cache items with meta data , update metadata i.e to remove meta
         public void BasicUpdateQuery5()
         {
-            string methodName = "BasicUpdateQuery5";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {
@@ -3792,7 +3802,7 @@ namespace QueriesTestApplication
         //Populate cache items with meta data , update metadata i.e to remove meta on all items with no where clause.
         public void BasicUpdateQuery6()
         {
-            string methodName = "BasicUpdateQuery6";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {
@@ -3863,7 +3873,7 @@ namespace QueriesTestApplication
         public void BasicUpdateQuery7()
         {
 
-            string methodName = "BasicUpdateQuery7";
+            string methodName = MethodBase.GetCurrentMethod().Name;
             count++;
             try
             {

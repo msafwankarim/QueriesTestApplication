@@ -825,6 +825,4 @@ namespace QueriesTestApplication
 
     }
 
-
-
 }

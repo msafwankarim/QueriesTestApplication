@@ -2,11 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Alachisoft.NCache.SDK" Version="5.3.2" />
+    <PackageReference Include="Alachisoft.NCache.SDK" Version="5.4.0" />
+    <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.15" />
   </ItemGroup>
 
   <ItemGroup>
@@ -14,9 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="client.ncconf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="tls.ncconf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
