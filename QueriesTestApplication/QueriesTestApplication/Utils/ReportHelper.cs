@@ -17,7 +17,12 @@ namespace QueriesTestApplication.Utils
             "GenerateFileNameParameter count mismatch.",
             "CreateParameter count mismatch.",
             "DeleteParameter count mismatch.",
-            "ModifyParameter count mismatch."
+            "ModifyParameter count mismatch.",
+
+            "PopulateCacheException has been thrown by the target of an invocation.",
+            "PopulateCacheWithMetaException has been thrown by the target of an invocation.",
+            "ExpandProductListParameter count mismatch."
+            
         };
 
         

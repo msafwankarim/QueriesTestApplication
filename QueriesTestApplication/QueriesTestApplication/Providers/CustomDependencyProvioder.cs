@@ -7,6 +7,7 @@ using System.Text;
 
 namespace QueriesTestApplication.Providers
 {
+    [Serializable]
     public class Dependency : Alachisoft.NCache.Runtime.Dependencies.ExtensibleDependency
     {
         public override bool HasChanged => VerifyCustomDependency();

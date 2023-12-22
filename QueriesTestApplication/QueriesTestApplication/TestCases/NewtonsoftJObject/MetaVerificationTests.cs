@@ -1,19 +1,15 @@
 ﻿using Alachisoft.NCache.Client;
-using Alachisoft.NCache.Common.Queries;
+using Alachisoft.NCache.Runtime;
 using Alachisoft.NCache.Runtime.Caching;
-using Alachisoft.NCache.Runtime.Dependencies;
 using Alachisoft.NCache.Runtime.JSON;
 using Alachisoft.NCache.Sample.Data;
+using QueriesTestApplication.Utils;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading;
-using Alachisoft.NCache.Runtime;
 using System.Data.SqlClient;
-using QueriesTestApplication.Utils;
-using Alachisoft.NCache.Common.DataStructures.Clustered;
-using OracleInternal.SqlAndPlsqlParser;
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 
 namespace QueriesTestApplication
 {
@@ -165,7 +161,7 @@ namespace QueriesTestApplication
         /// <remarks>
         /// Needs DB Credentials i.e ConnectionString and Query
         /// </remarks>
-        private void VerifyDbDependency()
+        public void VerifyDbDependency()
         {
             string methodName = "VerifyDbDependency";
             string Itemkey = "SqlDBDependency";
@@ -212,6 +208,9 @@ namespace QueriesTestApplication
                 adapter.UpdateCommand = command;
                 adapter.UpdateCommand.ExecuteNonQuery();
 
+                Console.WriteLine("waiting 5 seconds to verify db dependency");
+                Thread.Sleep(5000);
+
 
                 // After changing in Db
                 var returned = cache.Get<Alachisoft.NCache.Sample.Data.Product>(Itemkey);
@@ -222,7 +221,7 @@ namespace QueriesTestApplication
                 }
                 else
                 {
-                    throw new Exception("Failed: Add SQL DB Dependency ");
+                    throw new Exception("Failed: Add SQL DB Dependency. Item didnot expired ");
                 }
                 
             }
@@ -249,7 +248,7 @@ namespace QueriesTestApplication
         /// The custom dependecy configured is that the  item expires after 10 seconds.
         /// (i.e hasChanged returns true after 10 seconds)
         /// </remarks>
-        private void VerifyCustomDependency()
+        public void VerifyCustomDependency()
         {
             string methodName = "VerifyCustomDependency";
             cache.Clear();
@@ -965,7 +964,7 @@ namespace QueriesTestApplication
 
         //verify meta by adding with absolute expiration
 
-        void VerifyMetaData3()
+        public void VerifyMetaData3()
         {
             count++;
             int reveived = 0;
@@ -975,6 +974,7 @@ namespace QueriesTestApplication
                 cache.Clear();
                 var prodDict = GetDictionaryOfProductsToAdd(100);
                 List<string> namedTagggedKeys = new List<string>();
+                var  expirationsAdded = new List<Expiration>();
 
 
                 for (int i = 0; i < 100; i++)
@@ -993,12 +993,15 @@ namespace QueriesTestApplication
                                               }");
                     var result = cache.SearchService.ExecuteNonQuery(qc);
 
+                    expirationsAdded.Add(cache.GetCacheItem(key).Expiration);
+
 
                 }
 
                 Console.WriteLine($"waiting {_expirationTime} seconds to verify expiration");
 
                 Thread.Sleep(_expirationTime * 1000);
+
 
                 long itemsInCache = cache.Count;
                 if (itemsInCache > 0)

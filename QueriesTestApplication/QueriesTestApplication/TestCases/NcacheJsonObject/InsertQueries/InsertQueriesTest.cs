@@ -79,6 +79,40 @@ namespace QueriesTestApplication
         ////--- Add a key-value pair. Precondition: key not present.
 
 
+        public void AddProductThatISAlreadyAdded()
+        {
+            var methodName = MethodBase.GetCurrentMethod().Name;
+            try
+            {
+                cache.Clear();
+                PopulateProductList();
+
+                Product product = GetProduct();
+                string key = GetKey();
+
+                cache.Insert(key, product);
+
+                string insertQuery = "Insert into abc (Key,Value) Values ( @cachekey, @val)";
+                QueryCommand queryCommand = new QueryCommand(insertQuery);
+                queryCommand.Parameters.Add("@cachekey", key);
+                queryCommand.Parameters.Add("@val", product);
+
+                var insertresult = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                
+                throw new Exception("Exception is not thrown by insert query  if key existed");
+
+
+            }
+            catch (Exception ex)
+            {
+                if(ex.Message.Contains("The specified key already exists."))
+                    _report.AddPassedTestCase(methodName, "Add item with key that alerady exists");
+                else
+                    _report.AddFailedTestCase(methodName, ex);
+            }
+        }
+
         public void AddJArray()
         {
             var methodName = "AddJArray";

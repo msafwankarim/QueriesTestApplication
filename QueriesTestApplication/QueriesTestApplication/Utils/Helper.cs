@@ -54,8 +54,14 @@ namespace QueriesTestApplication.Utils
         public static bool IsInCorrectMetaException(Exception ex)
         {
             return ex.Message.Contains(_incorrectMeta);
-        } 
-        
+        }
+
+        public static bool ISProductBinarySerializedException(Exception ex)
+        {
+            return ex.Message.Contains("Unable to cast object of type 'Alachisoft.NCache.Sample.Data.Product' to type 'Alachisoft.NCache.Runtime.JSON.JsonObject'.");
+
+        }
+
         public static bool IsTargetNotFoundException(Exception ex)
         {
             return ex.Message.Contains("Unable to find target location at the specified segment");
@@ -105,6 +111,6 @@ namespace QueriesTestApplication.Utils
             return NameTagsArray;
         }
 
-
+        
     }
 }

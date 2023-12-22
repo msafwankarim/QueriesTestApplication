@@ -7,6 +7,7 @@ using System.Text;
 
 namespace QueriesTestApplication.Providers
 {
+    [Serializable]
     public class NotifyDependency : Alachisoft.NCache.Runtime.Dependencies.NotifyExtensibleDependency
     {
 

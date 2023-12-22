@@ -1,9 +1,11 @@
 ﻿using Alachisoft.NCache.Client;
+using Alachisoft.NCache.Common.Net;
 using Alachisoft.NCache.Runtime.JSON;
 using Alachisoft.NCache.Sample.Data;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -26,7 +28,7 @@ namespace QueriesTestApplication
         {
             get { return testResults; }
         }
-        
+
         /// <summary>
         /// Adds an inline JSON array in cache. Then Gets it back as JSON array
         /// </summary>
@@ -175,7 +177,7 @@ namespace QueriesTestApplication
 
 
         //--- Add a key-value pair 
-        
+
         /// <summary>
         /// Inserts a String having \\ slashes in cache
         /// </summary>
@@ -385,7 +387,7 @@ namespace QueriesTestApplication
                     }
 
                 }
-               
+
 
                 string searchQuery = "SELECT $Value$ FROM Alachisoft.NCache.Sample.Data.Product WHERE FlashSaleDiscount = @discount ";
                 QueryCommand searchQueryCommand = new QueryCommand(searchQuery);
@@ -412,6 +414,111 @@ namespace QueriesTestApplication
                 Console.WriteLine($"Failure: verify meta by adding with tags and then getting through those tags.  => {ex.Message}");
             }
         }
+
+        public void AllMetadataInSingleQuotes()
+        {
+            string methodName = MethodBase.GetCurrentMethod().Name;
+
+            cache.Clear();
+
+            cache.Insert("masterKey0","masterKey0");
+            cache.Insert("masterKey1","masterKey1");
+
+            string key = "myKey";
+            string meta = @" 
+                                    {       /*
+
+                                                  This is valid json string that contins all metadata supported
+                                            
+                                            */
+                                        Priority    :   'Low'          ,  // key is without quotes
+                                        'group'       :   'DevTeam'      ,
+                                        'tags'        :   ['Important Product', 'Imported Product'] ,
+                                        'namedtags'   :   [
+                                                            {
+                                                                'type' : 'long' ,
+                                                                'discont' : 70
+                                                            },
+                        
+                                                            {
+                                                                'type'     : 'string' ,
+                                                                'catagory' : 'Product'
+                                                            },   // trailing comma supported
+                                                          ],
+                      
+                      
+                                        'dependency' :  [
+                                                            {
+                                                                'key' : {
+                                                                            'keys' : ['masterKey0','masterKey1'],                           
+                                                                            'type' : 'removeonly'                           
+                                                                        }
+                                                            },
+                        
+                                                            {
+                                                                'file' : {
+                                                                             'fileNames' : ['C:\\dependencyFile.txt'],                           
+                                                                             'interval'  :  10                           
+                                                                         }
+                                                            }
+                                                        ],
+
+                                    'resyncOptions' :  {
+							                                    'ResyncOnExpiration' : 'true' ,
+							                                    'providerName'       : 'read'
+					                                    },
+
+                                       'expiration' :  {
+							                                    'type'     : 'sliding' ,
+							                                    'interval' :  10
+				                                       }  
+
+                                    }
+                                  ";
+
+            try
+            {
+                var insertquery = "Insert into Alachisoft.NCache.Sample.Data.Product (key,value,meta) values ('myKey','\"bottle\"', @metadata)";
+
+                QueryCommand qc = new QueryCommand(insertquery);
+                qc.Parameters.Add("@metadata", meta);
+                var insResult = cache.SearchService.ExecuteNonQuery(qc);
+
+                if (insResult == 0)
+                    throw new System.Exception("no item updated by query");
+
+                var cacheItem = cache.GetCacheItem(key);
+
+                if (cacheItem.Priority.ToString() != "Low")
+                    throw new System.Exception("priority not updated");
+
+
+                if (cacheItem.Tags.Length != 2 || !(cacheItem.Tags[0].TagName == "Imported Product" || cacheItem.Tags[1].TagName == "Imported Product"))
+                    throw new System.Exception("tag not updated");
+
+
+                if (cacheItem.Dependency.Dependencies.Count != 2)
+                    throw new System.Exception("dependency not updated");
+
+                if (cacheItem.ResyncOptions.ProviderName != "read")
+                    throw new System.Exception("resync provider not updated");
+
+                if (!cacheItem.Expiration.Type.ToString().Contains("Sliding"))
+                    throw new System.Exception("priority not updated");
+
+
+                testResults.Add(methodName, ResultStatus.Success);
+
+
+            }
+            catch (System.Exception ex)
+            {
+
+                testResults.Add(methodName, ResultStatus.Failure);
+                Console.WriteLine($"Failure: add all metadata in single quotes. ex => {ex.Message}");
+            }
+        }
+
 
         private string GetKey()
         {

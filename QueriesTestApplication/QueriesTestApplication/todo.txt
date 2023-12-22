@@ -1,16 +1,6 @@
-listen queries meeting minutes at sania pdc
-
-why this.Name = '\"{teaName}\"' inverted commas
-
-
-no summary for query service API 
 insertQueriesTest.AddJsonObject(); todo needs to be fixed date issue
-       
-test on all topologies and binary cache
-test without query indexing
-dedicated call
- 
-Update statement is only supported on JSON serialized cache. exception in insert query
+     
+test without query indexing 
 
 insert queries have comma issue while specifying values . also remove-meta and set-meta
 

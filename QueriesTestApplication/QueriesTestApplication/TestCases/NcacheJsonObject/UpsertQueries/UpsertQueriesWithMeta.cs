@@ -524,12 +524,16 @@ namespace QueriesTestApplication
 
                 File.AppendAllText(filePath, $"\n {methodName} => Modifying file to verify dependency at time : {DateTime.Now}");
 
+
+                Console.WriteLine($"waiting for {_cleanIntervalSeconds + 3} seconds for file dependency");
+                Thread.Sleep((_cleanIntervalSeconds + 3) * 1000);
+
                 var cacheItem = _cache.GetCacheItem(Itemkey);
                 if (cacheItem == null)
                     _report.AddPassedTestCase(methodName, "Success: Add File Dependency ");
 
                 else
-                    throw new Exception("Failure: Add File Dependency ");
+                    throw new Exception("Failure: item is not removes in File Dependency ");
 
             }
             catch (Exception ex)

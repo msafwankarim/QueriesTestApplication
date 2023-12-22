@@ -1,7 +1,9 @@
 ﻿using Alachisoft.NCache.Client;
 using Alachisoft.NCache.Common.Monitoring;
 using Alachisoft.NCache.JNIBridge.Net;
+using Alachisoft.NCache.MetricServer.DataModel;
 using Alachisoft.NCache.Runtime.CacheManagement;
+using Alachisoft.NCache.Runtime.Caching;
 using Alachisoft.NCache.Runtime.JSON;
 using Alachisoft.NCache.Sample.Data;
 using Quartz.Util;
@@ -184,7 +186,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@beverages", "Beverages");
                 queryCommand.Parameters.Add("@jOrder", jsonObject);
 
-                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
+                var write = new WriteThruOptions(WriteMode.WriteThru);
+
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary, write);
 
                 Helper.ValidateDictionary(dictionary);
 
@@ -590,6 +594,8 @@ namespace QueriesTestApplication
                 var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
 
                 Helper.ValidateDictionary(dictionary);
+
+                
 
 
                 _report.AddFailedTestCase(methodName, new Exception(description));
@@ -2021,7 +2027,7 @@ namespace QueriesTestApplication
 
         }
 
-        private void MoveAnAttributeThatDoesnotEixst()
+        public void MoveAnAttributeThatDoesnotEixst()
         {
             int updated = 0;
             cache.Clear();
@@ -3041,11 +3047,17 @@ namespace QueriesTestApplication
 
             int itemsAdded = 0;
             string key;
+
+            CacheItem cacheItem = new (null);
+
             foreach (var item in productList)
             {
                 key = "product" + item.Id;
                 keys.Add(key);
-                cache.Add(key, item);
+
+                 cacheItem.SetValue(item);
+
+                cache.Add(key, cacheItem);
 
                 itemsAdded++;
                 if (totalItemToAdd != -1 && itemsAdded == totalItemToAdd)

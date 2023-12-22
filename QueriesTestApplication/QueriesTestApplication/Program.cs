@@ -8,6 +8,9 @@ using System.Reflection;
 using QueriesTestApplication.Utils;
 using QueriesTestApplication.VerifyEscapeSequences;
 using System.Diagnostics.CodeAnalysis;
+using System.Data.SqlClient;
+using Novell.Directory.Ldap.Asn1;
+using System.Text;
 
 namespace QueriesTestApplication
 {
@@ -21,23 +24,24 @@ namespace QueriesTestApplication
             try
             {
                 // provider names
-                // CustomDependeny => custom , bulkDependencyProvider , notifyDependencyProvider
-                
+                // CustomDependeny => custom , bulkDependencyProvider , notifyDependencyProvider , read , write
+
                 Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
                 Console.BufferHeight = short.MaxValue - 10;
 
-                //JsonHelper.TestArrayWithIndexing();
+                // JsonHelper.TestArrayWithIndexing();
+                // TempTests();
 
-                Common.CacheName = "democache";
+                Common.CacheName = "replicated";
 
-                RunMetaVerificationTests();
-                RunInlineQueryTestForUpdate0();
-                RunInsertQueriesTests();
-                UpsertQueriesWithMeta();
-                InOperatorTests();
-                EscapeSequencesVerifier();
+                 //new MetaVerificationTestForJsonObj().TestTagMetadataWithByAnyTag();
+                // new MetaVerificationTests().VerifyDbDependency();
+                // new UpdateQueriesTestForJsonObject().AddObjectAtIndexThatDoesnotExist();
 
-                ReportHelper.PrintHeader("\n\n --------------------------------------------------------- ALL DONE -----------------------------------------------");
+                //RunOnAllTopologies();
+                RunAllCases();
+
+                ReportHelper.PrintHeader("\n\n ------------------------------------------------------- ALL DONE -----------------------------------------------");
 
 
             }
@@ -49,30 +53,42 @@ namespace QueriesTestApplication
 
         }
 
+        private static void RunAllCases()
+        {
+            RunMetaVerificationTests();
+            RunInlineQueryTestForUpdate0();
+            RunInsertQueriesTests();
+            UpsertQueriesWithMeta();
+            InOperatorTests();
+            EscapeSequencesVerifier();
+        }
 
 
-        //private static void RunOnAllTopologies()
-        //{
-        //    string[] CacheNames = new string[4] { "democache1", "Partition", "ReplicatedCache", "MirrorCache" };
-        //    for (int i = 0; i < 4; i++)
-        //    {
-        //        Console.WriteLine($"\n\n ****  Running TestCases on  {CacheNames[i] } ****");
+        private static void RunOnAllTopologies()
+        {
+            string[] CacheNames = new string[4] { "por", "partition", "replicated", "mirror" };
+            for (int i = 0; i < 4; i++)
+            {
+                Common.CacheName = CacheNames[i];
 
-        //        Common.CacheName = CacheNames[i];
-        //        RunMetaVerificationTests();
-        //        RunInlineQueryTests();
-        //        RunInsertQueriesTests();
-        //        RunInlineQueryTestForUpdate();
-        //        RunUpdateQueriesTests();
-        //        InOperatorTests();
-        //        Console.WriteLine($"\n\n **** Testing done on {CacheNames[i] }. Press any key to continue ");
-        //        Console.ReadKey();
-        //        Console.Clear();
-        //    }
+                string message = $"Running TestCases on  {Common.CacheName}";
 
-        //}
+                ReportHelper.PrintHeader($"\n{GetSymbol(message.Length,'=')}");
+                ReportHelper.PrintHeader($"\n{message.ToUpper()}");
+                ReportHelper.PrintHeader($"\n{GetSymbol(message.Length, '=')}");
 
-       
+
+                RunAllCases();
+
+
+                ReportHelper.PrintInfo($"\n **** Testing done on {Common.CacheName } ");
+                ReportHelper.PrintHeader($"\n\n{GetSymbol(1000)}");
+
+            }
+
+        }
+
+
 
         #region -------------------------- MetaVerification Tests  --------------------------
 
@@ -106,7 +122,7 @@ namespace QueriesTestApplication
             metaTest.Reprt.PrintReport();
             PromptInputIfNeeded();
             RunMetaVerificationTestsForJsonObj();
-            
+
         }
 
         private static void RunMetaVerificationTestsForJsonObj()
@@ -208,7 +224,7 @@ namespace QueriesTestApplication
             {
                 try
                 {
-                    if (mi.Name == "PopulateCache"  || mi.Name == "PopulateCacheAndGetKeys" || mi.Name == "PopulateCacheWithMeta" || mi.Name == "ExpandProductList")
+                    if (mi.Name == "PopulateCache" || mi.Name == "PopulateCacheAndGetKeys" || mi.Name == "PopulateCacheWithMeta" || mi.Name == "ExpandProductList")
                         continue;
 
                     mi.Invoke(inlineQuerytests, parameters);
@@ -220,14 +236,14 @@ namespace QueriesTestApplication
                 }
 
             }
-           
+
             inlineQuerytests.Report.PrintReport();
 
             PromptInputIfNeeded();
 
             RunInlineQueryTestForUpdate();
-        } 
-        
+        }
+
         private static void RunInlineQueryTestForUpdate()
         {
             object[] parameters = null;
@@ -264,13 +280,12 @@ namespace QueriesTestApplication
 
         }
 
-       
+
 
         private static void RunUpdateQueriesTestsForJsonObject()
         {
             object[] parameters = null;
             UpdateQueriesTestForJsonObject updateQueriesTest = new UpdateQueriesTestForJsonObject();
-            Common.PrintClassName(nameof(UpdateQueriesTestForJsonObject));
 
             MethodInfo[] methodInfos = typeof(UpdateQueriesTestForJsonObject).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -306,7 +321,7 @@ namespace QueriesTestApplication
 
 
         #region -------------------------- InsertQuery tests --------------------------
-       
+
         private static void RunInsertQueriesTests()
         {
             object[] parameters = null;
@@ -360,7 +375,7 @@ namespace QueriesTestApplication
 
             MethodInfo[] methodInfos = typeof(InsertQueriesTestForJsonObj).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-           // insertQueriesTest.AddJsonObject(); todo needs to be fixed
+            // insertQueriesTest.AddJsonObject(); todo needs to be fixed
 
             foreach (var mi in methodInfos)
             {
@@ -391,7 +406,7 @@ namespace QueriesTestApplication
         private static void UpsertQueriesWithMeta()
         {
             object[] parameters = null;
-            UpsertQueriesWithMeta upsertQueriesTest = new UpsertQueriesWithMeta(); 
+            UpsertQueriesWithMeta upsertQueriesTest = new UpsertQueriesWithMeta();
 
             MethodInfo[] methodInfos = typeof(UpsertQueriesWithMeta).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var mi in methodInfos)
@@ -420,8 +435,9 @@ namespace QueriesTestApplication
         {
             object[] parameters = null;
             InlineQueryTestsForInsertUpsert metaTest = new InlineQueryTestsForInsertUpsert();
-            Common.PrintClassName("InlineQueryTestsForInsertUpsert");
             MethodInfo[] methodInfos = typeof(InlineQueryTestsForInsertUpsert).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+
             foreach (var mi in methodInfos)
             {
                 try
@@ -435,6 +451,7 @@ namespace QueriesTestApplication
                 }
 
             }
+
             foreach (var val in metaTest.TestResults)
             {
                 if (val.Value == ResultStatus.Failure)
@@ -508,7 +525,7 @@ namespace QueriesTestApplication
 
             var startAfterTime = DateTime.Now + TimeSpan.FromSeconds(120);
 
-           
+
 
 
             object obj = @"{ 
@@ -555,11 +572,24 @@ namespace QueriesTestApplication
 
         private static void PromptInputIfNeeded()
         {
-            ReportHelper.PrintHeader("--------------------------------------------------------------------------------------------------------");
+            ReportHelper.PrintHeader("\n--------------------------------------------------------------------------------------------------------------------------\n");
 
 
             if (!OneGo)
                 Console.ReadLine();
+        }
+
+        public static string GetSymbol(int length,char symbol = '*')
+        {
+            var builder = new StringBuilder();
+
+            for (int i = 0; i < length; i++)
+            {
+                builder.Append(symbol);
+            }
+
+            return builder.ToString();
+
         }
     }
 

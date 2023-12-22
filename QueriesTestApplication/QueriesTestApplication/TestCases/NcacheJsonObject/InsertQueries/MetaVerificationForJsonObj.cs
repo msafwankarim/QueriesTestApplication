@@ -29,6 +29,7 @@ namespace QueriesTestApplication
         private readonly ICache _cache;
         private readonly Report _report;
         private readonly int _cleanIntervalSeconds = 5;
+        private readonly int _sleepTime = 7000;
 
         private int DependencyWaitTime  { get => (_cleanIntervalSeconds + 1) * 1000; }
 
@@ -476,7 +477,16 @@ namespace QueriesTestApplication
 
                 Tag[] SearchTags = new Tag[2] { new Tag("Important Product"), new Tag("Imported Product") };
 
-                _ = _cache.Get<JsonObject>(key1);
+                try
+                {
+                    _ = _cache.Get<JsonObject>(key1);
+                }
+                catch (Exception ex)
+                {
+                    if(!Helper.ISProductBinarySerializedException(ex))
+                        throw;
+                }
+
                 _ = _cache.Get<Product>(key1);
 
                 IDictionary<string, Product> data = _cache.SearchService.GetByTags<Product>(SearchTags, TagSearchOptions.ByAnyTag);
@@ -489,6 +499,7 @@ namespace QueriesTestApplication
             }
             catch (Exception ex)
             {
+
                 _report.AddFailedTestCase(methodName, ex);
 
             }
@@ -524,7 +535,15 @@ namespace QueriesTestApplication
 
                 Tag[] SearchTags = new Tag[2] { new Tag("Important Product"), new Tag("Imported Product") };
 
-                _ = _cache.Get<JsonObject>(key1);
+                try
+                {
+                    _ = _cache.Get<JsonObject>(key1);
+                }
+                catch (Exception ex)
+                {
+                    if (!Helper.ISProductBinarySerializedException(ex))
+                        throw;
+                }
                 _ = _cache.Get<Product>(key1);
 
                 IDictionary<string, Product> data = _cache.SearchService.GetByTags<Product>(SearchTags, TagSearchOptions.ByAllTags);
@@ -572,7 +591,15 @@ namespace QueriesTestApplication
 
                 Tag[] SearchTags = new Tag[2] { new Tag("Important Product"), new Tag("Imported Product") };
 
-                _ = _cache.Get<JsonObject>(key1);
+                try
+                {
+                    _ = _cache.Get<JsonObject>(key1);
+                }
+                catch (Exception ex)
+                {
+                    if (!Helper.ISProductBinarySerializedException(ex))
+                        throw;
+                }
                 _ = _cache.Get<Product>(key1);
 
                 IDictionary<string, Product> data = _cache.SearchService.GetByTags<Product>(SearchTags, TagSearchOptions.ByAllTags);
@@ -2033,12 +2060,106 @@ namespace QueriesTestApplication
 
                 File.AppendAllText(filePath, $"\n {methodName} => updating the file to verify dependency {DateTime.Now}");
 
-                Console.WriteLine("waiting for 5 seconds to verify dependency");
-                Thread.Sleep(5000);
+                Console.WriteLine($"waiting for {_sleepTime} seconds to verify dependency");
+                Thread.Sleep(_sleepTime );
 
 
                 if (_cache.GetCacheItem(Itemkey) != null)
                     throw new Exception($"updating the file  didnot triggered key dependency");
+
+                _report.AddPassedTestCase(methodName, description);
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
+
+            }
+
+
+
+        }
+
+
+        #endregion
+
+
+
+        #region --------------------------------- WriteThru -----------------
+
+
+        public void KeyAndFileDependencyWithWriteThru()
+        {
+            string methodName = MethodBase.GetCurrentMethod().Name;
+            string Itemkey = "KeyAndFileDependencyWithWriteThru";
+            Product item = GetProduct();
+            string description = "Verify key and file dependency with one master key with Remove enum";
+
+            try
+            {
+                string filePath = "C:\\\\dependencyFile.txt";
+                File.AppendAllText(filePath, $"\n {methodName} => This file is used to verify file dependency in ncache by queries. {DateTime.Now}");
+
+                var masterKey = Guid.NewGuid().ToString();
+                _cache.Insert(masterKey, new CacheItem(item));
+
+                string query = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+
+
+                string keysArray = $"[\"{masterKey}\"]";
+                string keyDependency = "{\"keys\" :" + keysArray + ", \"type\" : \"removeonly\"}";
+
+
+                var fileDependency = "{'fileNames':['C:\\\\dependencyFile.txt' ], 'interval' : 5}";
+
+                string jsonString = "{'dependency':[{'key':" + keyDependency + "},{'file':" + fileDependency + "}]}";
+
+                jsonString = jsonString.Replace("'", "\"");
+
+                var jsonObject = new JsonObject(jsonString);
+
+                QueryCommand queryCommand = new QueryCommand(query);
+                queryCommand.Parameters.Add("@key1", Itemkey);
+                queryCommand.Parameters.Add("@val", item); 
+                queryCommand.Parameters.Add("@metadata", jsonObject);
+
+                var write = new WriteThruOptions(WriteMode.WriteThru);
+                // _cache.Insert("sd",new CacheItem("kd"),write);
+
+                var result = _cache.QueryService.ExecuteNonQuery(queryCommand, write);
+
+                var cacheItem = _cache.GetCacheItem(Itemkey);
+
+               
+                if (cacheItem == null)
+                    throw new Exception("item not inserted with key and file  dependency");
+
+                if (cacheItem.Dependency == null)
+                    throw new Exception(" dependency is not added with cache item");
+
+                //update master key
+                _cache.Insert(masterKey, item);
+
+                if (_cache.GetCacheItem(Itemkey) == null)
+                    throw new Exception($"Updating master key triggerd the dependency");
+
+                _cache.Remove(masterKey);
+
+                if (_cache.GetCacheItem(Itemkey) != null)
+                    throw new Exception($"Removing master key didnot triggered key dependency");
+
+                // now verify file dependency
+                _cache.Insert(masterKey, item);
+                _cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                File.AppendAllText(filePath, $"\n {methodName} => updating the file to verify dependency {DateTime.Now}");
+
+                Console.WriteLine($"waiting for {_sleepTime + 2} seconds to verify KeyAndFileDependencyWithWriteThru");
+                Thread.Sleep(_sleepTime  );
+
+
+                if (_cache.GetCacheItem(Itemkey) != null)
+                    throw new Exception($"updating the file  didnot triggered file dependency");
 
                 _report.AddPassedTestCase(methodName, description);
 

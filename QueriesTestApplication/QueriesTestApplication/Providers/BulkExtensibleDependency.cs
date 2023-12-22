@@ -9,6 +9,7 @@ using System.Text;
 
 namespace QueriesTestApplication.Providers
 {
+    [Serializable]
     public class BulkDependency : Alachisoft.NCache.Runtime.Dependencies.BulkExtensibleDependency
     {
         public override bool HasChanged => VerifyBulkDependency();
