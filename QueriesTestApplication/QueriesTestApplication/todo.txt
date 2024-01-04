@@ -1,7 +1,5 @@
 insertQueriesTest.AddJsonObject(); todo needs to be fixed date issue
-     
-test without query indexing 
-
-insert queries have comma issue while specifying values . also remove-meta and set-meta
-
-verify tag is given in service  <add key="NCache.ParserBufferSize" value="1024"/> in setup
+   
+test without query indexing
+verify queryindexed items are updated
+verify this tag is given in service <add key="NCache.ParserBufferSize" value="1024"/> in setup

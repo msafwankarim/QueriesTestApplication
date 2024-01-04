@@ -43,10 +43,11 @@ namespace QueriesTestApplication
         }
         private void PopulateCache()
         {
-
+            var cacheItem = new CacheItem(null);
             foreach (var item in productList)
             {
-                cache.Add("product" + item.Id, item);
+                cacheItem.SetValue(item);
+                cache.Add("product" + item.Id, cacheItem);
             }
         }
 
@@ -62,6 +63,7 @@ namespace QueriesTestApplication
             count++;
             try
             {
+                var res = cache.Get<Product>("product1");
                 var selectQuery = "Select * from Alachisoft.NCache.Sample.Data.Product where Id > 10";
                 QueryCommand queryCommand1 = new QueryCommand(selectQuery);
                 var result = cache.SearchService.ExecuteReader(queryCommand1);
@@ -134,6 +136,44 @@ namespace QueriesTestApplication
             {
                 _report.AddFailedTestCase(methodName, ex);
 
+            }
+        }
+
+        public void VerifyValueByQuery()
+        {
+            string methodName = MethodBase.GetCurrentMethod().Name;
+            count++;
+            try
+            {
+                cache.Clear();
+                PopulateCache();
+
+                string query = "Update  Alachisoft.NCache.Sample.Data.Product  Set Id = 1 ";
+                QueryCommand queryCommand = new QueryCommand(query);
+                //var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
+                System.Collections.IDictionary dictionary;
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+
+                Helper.ValidateDictionary(dictionary);
+
+                var exception = new Exception("Partial Update to  SET int value ");
+
+                foreach (var item in productList)
+                {
+
+                    var prod = cache.Get<Product>("product" + item.Id);
+
+                    if (prod.Id != 1)
+                        throw exception;
+
+                }
+
+                _report.AddPassedTestCase(methodName, "Success:Partial Update to  SET int value");
+
+            }
+            catch (Exception ex)
+            {
+                _report.AddFailedTestCase(methodName, ex);
             }
         }
 
@@ -498,6 +538,7 @@ namespace QueriesTestApplication
         }
 
         #endregion
+
 
         #region  ----------------------------  Test Operations  ----------------------------
 

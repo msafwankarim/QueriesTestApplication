@@ -195,8 +195,11 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@beverages", catagory);
 
-                var updated = cache.QueryService.ExecuteNonQuery(queryCommand);
+                var preFetchedCacheItem = cache.GetCacheItem("product1");
+                //var preFetchVersion = preFetchedCacheItem.Version;
 
+                var updated = cache.QueryService.ExecuteNonQuery(queryCommand);
+ 
                 foreach (var item in productList)
                 {
                     if (item.Category != catagory)
@@ -206,13 +209,24 @@ namespace QueriesTestApplication
                     var cacheItem = cache.GetCacheItem("product" + item.Id);
                     var jsonProd = cache.Get<JsonObject>("product" + item.Id);
 
+                    var version = cacheItem.Version;
+                    //bool versionEqual = preFetchVersion.Equals(version);
+
                     var tagsFromCache = cacheItem.Tags;
 
                     var tag = tagsFromCache.
                         Where(tag => tag.TagName == tagsArray[1].Value.ToString());
+                    try
+                    {
+                        if (tag.First().TagName == null)
+                            throw new Exception(description);
+                    }
+                    catch (Exception ex)
+                    {
 
-                    if (tag.First().TagName == null )
-                        throw new Exception(description);
+                        throw;
+                    }
+                   
 
                 }
 

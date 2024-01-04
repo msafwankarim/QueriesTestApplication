@@ -7,9 +7,6 @@ using System;
 using System.Reflection;
 using QueriesTestApplication.Utils;
 using QueriesTestApplication.VerifyEscapeSequences;
-using System.Diagnostics.CodeAnalysis;
-using System.Data.SqlClient;
-using Novell.Directory.Ldap.Asn1;
 using System.Text;
 
 namespace QueriesTestApplication
@@ -26,20 +23,13 @@ namespace QueriesTestApplication
                 // provider names
                 // CustomDependeny => custom , bulkDependencyProvider , notifyDependencyProvider , read , write
 
-                Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
-                Console.BufferHeight = short.MaxValue - 10;
+                Init();
 
-                // JsonHelper.TestArrayWithIndexing();
-                // TempTests();
+                Common.CacheName = "democache";
 
-                Common.CacheName = "replicated";
-
-                 //new MetaVerificationTestForJsonObj().TestTagMetadataWithByAnyTag();
-                // new MetaVerificationTests().VerifyDbDependency();
-                // new UpdateQueriesTestForJsonObject().AddObjectAtIndexThatDoesnotExist();
-
-                //RunOnAllTopologies();
                 RunAllCases();
+                //RunOnAllTopologies();
+
 
                 ReportHelper.PrintHeader("\n\n ------------------------------------------------------- ALL DONE -----------------------------------------------");
 
@@ -53,6 +43,15 @@ namespace QueriesTestApplication
 
         }
 
+        private static void Init()
+        {
+            Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
+            Console.BufferHeight = short.MaxValue - 10;
+
+            // JsonHelper.TestArrayWithIndexing();
+            //TempTests<String>();
+        }
+
         private static void RunAllCases()
         {
             RunMetaVerificationTests();
@@ -61,6 +60,7 @@ namespace QueriesTestApplication
             UpsertQueriesWithMeta();
             InOperatorTests();
             EscapeSequencesVerifier();
+            VerifyIndexesAreUpdatedOnReplica();
         }
 
 
@@ -464,6 +464,20 @@ namespace QueriesTestApplication
         #endregion
 
 
+
+        private static void VerifyIndexesAreUpdatedOnReplica()
+        {
+            IndexesVerifier verifier = new IndexesVerifier();
+
+            //verifier.VerifyViaJsonPatch();
+
+            verifier.ChangeIndexesByUpdateQuery();
+            verifier.VerifyUpdatedData();
+            
+
+            verifier.Report.PrintReport();
+        }
+
         private static void InOperatorTests()
         {
             object[] parameters = null;
@@ -495,9 +509,10 @@ namespace QueriesTestApplication
             PromptInputIfNeeded();
         }
 
-        private static void TempTests()
+        private static T TempTests<T>()
         {
-            JsonValue val = (JsonValue)Common.CacheName;
+            var cacheName = Common.CacheName;
+            JsonValue val = (JsonValue)(cacheName != null ? cacheName : "cacheName");
             var str = JsonConvert.SerializeObject(val); // datatype automatically added on serializing JsonValue
 
             string city = "rawalpindi\\Islamabad";
@@ -543,6 +558,20 @@ namespace QueriesTestApplication
 
             }
 
+            object dateTime = DateTime.Now;
+            
+            string stringDateTime = ((DateTime)dateTime).ToString("dd/MM/yyyy/HH/mm/ss/ffff/zzzz", System.Globalization.CultureInfo.InvariantCulture);
+            object deserializedDate = DateTime.ParseExact(stringDateTime, "dd/MM/yyyy/HH/mm/ss/ffff/zzzz", System.Globalization.CultureInfo.InvariantCulture);
+
+
+            object Null = null;
+
+            if (Null == null)
+                return (T)Null;
+
+
+            object returnValue = "null";
+            return (T)returnValue;
 
         }
 

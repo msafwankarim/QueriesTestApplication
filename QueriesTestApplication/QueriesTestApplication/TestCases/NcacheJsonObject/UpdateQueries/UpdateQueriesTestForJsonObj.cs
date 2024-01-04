@@ -15,6 +15,7 @@ using System.Diagnostics;
 using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using ReportHelper = QueriesTestApplication.Utils.ReportHelper;
 
 namespace QueriesTestApplication
@@ -194,7 +195,8 @@ namespace QueriesTestApplication
 
                 foreach (var key in keys)
                 {
-                    _ = cache.Get<JsonObject>(key);
+                    //Thread.Sleep(20000); // for inproc
+                    //_ = cache.Get<JsonObject>(key);
                     var prod = cache.Get<Product>(key);
 
                     if (!prod.Order.Equals(order))

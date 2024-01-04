@@ -1799,9 +1799,12 @@ namespace QueriesTestApplication
         private void PopulateCache(int totalItemToAdd = -1)
         {
             int itemsAdded = 0;
+            CacheItem caheItem = new CacheItem(null);
+
             foreach (var item in productList)
             {
-                cache.Add("product" + item.Id, item);
+                caheItem.SetValue(item);
+                cache.Add("product" + item.Id, caheItem);
 
                 itemsAdded++;
                 if (totalItemToAdd != -1 && itemsAdded == totalItemToAdd)
@@ -1815,11 +1818,15 @@ namespace QueriesTestApplication
 
             int itemsAdded = 0;
             string key;
+
+            var cacheItem = new CacheItem(null);
             foreach (var item in productList)
             {
                 key = "product" + item.Id;
                 keys.Add(key);
-                cache.Add(key, item);
+
+                cacheItem.SetValue(item);
+                cache.Add(key, cacheItem);
 
                 itemsAdded++;
                 if (totalItemToAdd != -1 && itemsAdded == totalItemToAdd)
