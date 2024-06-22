@@ -22,7 +22,7 @@ namespace QueriesTestApplication.Providers
             File.AppendAllText(filePath, $"\n Dispose => Method called at . {DateTime.Now}");
         }
 
-        public void Init(IDictionary parameters, string cacheId)
+        public void Init(IDictionary<string, string> parameters, string cacheName)
         {
             string filePath = "C:\\\\readThruLogs.txt";
             File.AppendAllText(filePath, $"\n Init => Method called at . {DateTime.Now}");
@@ -37,9 +37,7 @@ namespace QueriesTestApplication.Providers
 
         public ProviderCacheItem LoadFromSource(string key)
         {
-            string filePath = "C:\\\\readThruLogs.txt";
-            File.AppendAllText(filePath, $"\n LoadFromSource => Method called at . {DateTime.Now}");
-            return null;
+            return new ProviderCacheItem(new TestProduct("_name",  "NAME"));
         }
 
         public IDictionary<string, ProviderCacheItem> LoadFromSource(ICollection<string> keys)
@@ -47,6 +45,22 @@ namespace QueriesTestApplication.Providers
             string filePath = "C:\\\\readThruLogs.txt";
             File.AppendAllText(filePath, $"\n LoadFromSource(ICollection<string> keys) => Method called at . {DateTime.Now}");
             return null;
+        }
+    }
+
+
+    class TestProduct
+    {
+        public string Name { get; set; } = "Default Name";
+
+        private string _name = "default _name";
+
+        public TestProduct() { }
+
+        public TestProduct(string name, string nameProp)
+        {
+            _name = name;
+            Name = nameProp;
         }
     }
 

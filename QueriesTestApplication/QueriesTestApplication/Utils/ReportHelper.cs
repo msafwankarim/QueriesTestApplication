@@ -26,7 +26,7 @@ namespace QueriesTestApplication.Utils
         };
 
         
-        public static void ValidateDictionary(IDictionary dictionary)
+        public static void ValidateDictionary(IDictionary<string, Exception> dictionary)
         {
             if (dictionary.Count > 0)
             {

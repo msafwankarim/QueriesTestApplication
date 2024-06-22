@@ -1,0 +1,27 @@
+<configuration>
+    <store-configuration type="distributed-cache" name="myCache" id="2160299a-dc11-4afe-8a22-f867fee22b1e" version="0" alias="">
+    <store-setting last-modified="" data-format="Object">
+      <auto-start enabled="False"/>
+      <logging enabled="True" level="error" path=""/>
+      <performance-counters enabled="True" snmp-port="0"/>
+      <data-load-balancing enabled="False" threshold="60%" interval="30sec"/>
+      <compression enabled="False" threshold="100kb"/>
+      <client-death-detection enabled="True" grace-interval="60sec"/>
+      <client-activity-notification enabled="False" retention-period="5sec"/>
+      <serialization format="Binary"/>
+      <cleanup interval="15sec"/>
+      <storage type="heap" size="1024mb"/>
+      <eviction-policy enabled="True" default-priority="normal" policy="lru" ratio="5%"/>
+    </store-setting>
+    <topology-setting topology="local-cache" inproc="True"/>
+    <cache-setting>
+      <expiration enabled="False">
+        <absolute longer-enabled="False" longer-value="0" default-enabled="False" default-value="0"/>
+        <sliding longer-enabled="False" longer-value="0" default-enabled="False" default-value="0"/>
+      </expiration>
+      <cache-notifications item-removed="False" item-added="False" item-updated="False" retention-period="15sec"/>
+      <map-reduce max-tasks="10" chunk-size="100" communicate-stats="False" queue-size="10" max-avoidable-exceptions="10"/>
+    </cache-setting>
+  </store-configuration>
+ 
+</configuration>

@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <UserSecretsId>1f0a4c0a-9254-49d3-8046-25d3df51f8f6</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,7 +10,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Alachisoft.NCache.SDK" Version="5.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="config.ncconf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

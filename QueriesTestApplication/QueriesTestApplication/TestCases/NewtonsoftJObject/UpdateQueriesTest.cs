@@ -75,14 +75,14 @@ namespace QueriesTestApplication
 
                 QueryCommand queryCommand = new QueryCommand(query);
                 // queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary = new Dictionary<string, Exception>();
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
                 int TotalFailedOperations = 0;
-                Helper.ValidateDictionary(dictionary);
-                foreach (DictionaryEntry val in dictionary)
+                
+                foreach (var val in dictionary)
                 {
                     TotalFailedOperations++;
                 }
@@ -148,15 +148,14 @@ namespace QueriesTestApplication
 
                 QueryCommand queryCommand = new QueryCommand(query);
                 // queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary = new Dictionary<string, Exception>();
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
                 int TotalFailedOperations = 0;
-                Helper.ValidateDictionary(dictionary);
-
-                foreach (DictionaryEntry val in dictionary)
+                
+                foreach (var val in dictionary)
                 {
                     TotalFailedOperations++;
                 }
@@ -223,15 +222,14 @@ namespace QueriesTestApplication
 
                 QueryCommand queryCommand = new QueryCommand(query);
                 // queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary = new Dictionary<string,Exception>();
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
                 int TotalFailedOperations = 0;
-                Helper.ValidateDictionary(dictionary);
-
-                foreach (DictionaryEntry val in dictionary)
+                
+                foreach (var val in dictionary)
                 {
                     TotalFailedOperations++;
                 }
@@ -299,13 +297,12 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
-                Helper.ValidateDictionary(dictionary);
-
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
+                
                 
 
                 stopwatch.Stop();
@@ -352,15 +349,14 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out IDictionary dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 var exception = new Exception("Failure:Partial Update item to copy array indexes");
 
                 if (updated == 0)
                     throw exception;
 
-                Helper.ValidateDictionary(dictionary);
-
+                
 
                 _ = cache.Get<JsonObject>(ProductKey);
 
@@ -397,11 +393,10 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out IDictionary dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 var exception = new Exception("Failure:Partial Update item to copy array indexes");
-                Helper.ValidateDictionary(dictionary);
-                throw exception;
+                                throw exception;
             }
             catch (Exception ex)
             {
@@ -435,16 +430,15 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 // product ID should not be replaced by order object
 
-                Helper.ValidateDictionary(dictionary);
-
+                
 
                 throw new Exception(description);
 
@@ -485,13 +479,12 @@ namespace QueriesTestApplication
 
                 QueryCommand queryCommand = new QueryCommand(query);
                 // queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
-                Helper.ValidateDictionary(dictionary);
-                throw new Exception("CopyOnAttributeThatDoesnotExist : Failed");
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
+                                throw new Exception("CopyOnAttributeThatDoesnotExist : Failed");
             }
             catch (Exception ex)
             {
@@ -531,14 +524,13 @@ namespace QueriesTestApplication
 
                 QueryCommand queryCommand = new QueryCommand(query);
                 // queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
                 int TotalFailedOperations = 0;
-                Helper.ValidateDictionary(dictionary);
-                throw new Exception("CopyOnAttributeThatDoesnotExist : Failed");
+                                throw new Exception("CopyOnAttributeThatDoesnotExist : Failed");
             }
             catch (Exception ex)
             {
@@ -580,14 +572,13 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
                 string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
@@ -635,14 +626,13 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -692,14 +682,13 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
                 throw new Exception("Failure:Partial Update items using Move query");
 
 
@@ -736,14 +725,13 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -792,13 +780,12 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
-                Helper.ValidateDictionary(dictionary);
-
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
+                
                 throw new Exception("Failure:Partial Update items using Move query");
 
 
@@ -836,13 +823,12 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
-                Helper.ValidateDictionary(dictionary);
-
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
+                
                 throw new Exception("Failure:Partial Update items using Move query");
 
 
@@ -880,15 +866,14 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out IDictionary dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 var exception = new Exception("Failure:Partial Update item to copy array indexes");
 
                 if (updated == 0)
                     throw exception;
 
-                Helper.ValidateDictionary(dictionary);
-
+                
 
                 _ = cache.Get<JsonObject>(ProductKey);
 
@@ -925,11 +910,10 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out IDictionary dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 var exception = new Exception("Failure:Partial Update item to move array indexes");
-                Helper.ValidateDictionary(dictionary);
-                throw exception;
+                                throw exception;
             }
             catch (Exception ex)
             {
@@ -974,11 +958,11 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary = new Dictionary<string, Exception>();
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -1027,11 +1011,11 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@ProductName", jorder);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary = new Dictionary<string, Exception>();
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -1078,15 +1062,14 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@ProductName", jorder);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
 
-                Helper.ValidateDictionary(dictionary);
-
+                
                 _report.AddFailedTestCase(methodName, new Exception("Test Object with wrong values didn't throw exception"));
 
 
@@ -1130,15 +1113,15 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@MyOrder", jorder);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
-                string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                string elapsedTime = string.Format("{0:00}:{1:00}:{2:00}.{3:00}",
                 ts.Hours, ts.Minutes, ts.Seconds,
                 ts.Milliseconds / 10);
                 Console.WriteLine("RunTime " + elapsedTime);
@@ -1196,13 +1179,12 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@Image", jImage);
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 foreach (string key in keys)
                 {
                     var testProperDeserialization = cache.Get<Product>(key);
@@ -1263,13 +1245,12 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@jImage", jImage);
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 foreach (string key in keys)
                 {
                     var testProperDeserialization = cache.Get<Product>(key);
@@ -1332,13 +1313,12 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@jObect", jObect);
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 var failException = new Exception("Set Operation has Replaced array structure  to object (Images[*].ImageFormats[*].formatSubArray = JObject)");
 
                 // control should not reach here because i have destroyed the structure by adding jobject instead of jarray
@@ -1416,13 +1396,12 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@jArray", jArray);
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 var failException = new Exception("Set Operation failed to Replace complex array structure  (Images[*].ImageFormats[*].SubArray[*] = )");
 
                 foreach (string key in keys)
@@ -1492,13 +1471,12 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@jImage", jImage);
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 foreach (string key in keys)
                 {
                     var result = cache.Get<JsonObject>(key);
@@ -1570,11 +1548,11 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@jImage", jImage);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -1583,8 +1561,7 @@ namespace QueriesTestApplication
                 ts.Milliseconds / 10);
                 Console.WriteLine("RunTime " + elapsedTime);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 var result = cache.Get<JsonObject>("product1");
                 JObject jsonObject = JObject.Parse(result.ToString());
 
@@ -1639,11 +1616,11 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@ImageFormat", ImageFormat);
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -1652,8 +1629,7 @@ namespace QueriesTestApplication
                 ts.Milliseconds / 10);
                 Console.WriteLine("RunTime " + elapsedTime);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 foreach (string key in keys)
                 {
                     var result = cache.Get<JsonObject>(key);
@@ -1713,11 +1689,11 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@FileName", ImageFileName);
                 queryCommand.Parameters.Add("@jImage", jImage);
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -1726,8 +1702,7 @@ namespace QueriesTestApplication
                 ts.Milliseconds / 10);
                 Console.WriteLine("RunTime " + elapsedTime);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 foreach (string key in keys)
                 {
                     var result = cache.Get<JsonObject>(key);
@@ -1777,11 +1752,11 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@ImageFormat", ImageFormat);
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -1790,8 +1765,7 @@ namespace QueriesTestApplication
                 ts.Milliseconds / 10);
                 Console.WriteLine("RunTime " + elapsedTime);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 foreach (string key in keys)
                 {
                     var result = cache.Get<JsonObject>(key);
@@ -1847,11 +1821,11 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@ImageFormat", ImageFormat);
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -1860,8 +1834,7 @@ namespace QueriesTestApplication
                 ts.Milliseconds / 10);
                 Console.WriteLine("RunTime " + elapsedTime);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 foreach (string key in keys)
                 {
                     var result = cache.Get<JsonObject>(key);
@@ -1921,11 +1894,11 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@ImageFormat", ImageFormat);
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -1934,8 +1907,7 @@ namespace QueriesTestApplication
                 ts.Milliseconds / 10);
                 Console.WriteLine("RunTime " + elapsedTime);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 foreach (string key in keys)
                 {
                     var result = cache.Get<JsonObject>(key);
@@ -1996,11 +1968,11 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@ImageFormat", ImageFormat);
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -2009,8 +1981,7 @@ namespace QueriesTestApplication
                 ts.Milliseconds / 10);
                 Console.WriteLine("RunTime " + elapsedTime);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 // Contrtol should not reach here
 
                 _report.AddFailedTestCase(methodName, new Exception("Expected a Target Not Found Exception, but didn't get it."));
@@ -2052,11 +2023,11 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@ImageFormat", ImageFormat);
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -2065,8 +2036,7 @@ namespace QueriesTestApplication
                 ts.Milliseconds / 10);
                 Console.WriteLine("RunTime " + elapsedTime);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 // Contrtol should not reach here
 
                 _report.AddFailedTestCase(methodName, new Exception("Expected a Target Not Found Exception, but didn't get it."));
@@ -2108,11 +2078,11 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@ImageFormat", ImageFormat);
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -2121,8 +2091,7 @@ namespace QueriesTestApplication
                 ts.Milliseconds / 10);
                 Console.WriteLine("RunTime " + elapsedTime);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 // Contrtol should not reach here
 
                 _report.AddFailedTestCase(methodName, new Exception("Expected a Target Not Found Exception, but didn't get it."));
@@ -2165,11 +2134,11 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@ImageFormat", ImageFormat);
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -2178,8 +2147,7 @@ namespace QueriesTestApplication
                 ts.Milliseconds / 10);
                 Console.WriteLine("RunTime " + elapsedTime);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 // Contrtol should not reach here
 
                 _report.AddFailedTestCase(methodName, new Exception("Expected a Target Not Found Exception, but didn't get it."));
@@ -2218,11 +2186,11 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@ImageFormat", ImageFormat);
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
@@ -2231,8 +2199,7 @@ namespace QueriesTestApplication
                 ts.Milliseconds / 10);
                 Console.WriteLine("RunTime " + elapsedTime);
 
-                ReportHelper.ValidateDictionary(dictionary);
-
+                
                 // Contrtol should not reach here
 
                 _report.AddFailedTestCase(methodName, new Exception("Expected a Target Not Found Exception, but didn't get it."));
@@ -2273,10 +2240,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@beverages", "Beverages");
                 queryCommand.Parameters.Add("@jArray", jArray);
 
-                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
                 var exception = new Exception(description);
 
                 foreach (string key in keys)
@@ -2303,8 +2269,7 @@ namespace QueriesTestApplication
 
                 }
 
-                Helper.ValidateDictionary(dictionary);
-
+                
 
                 _report.AddPassedTestCase(methodName, description);
 
@@ -2342,10 +2307,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@beverages", "Beverages");
                 queryCommand.Parameters.Add("@jArray", jArray);
 
-                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
                 var exception = new Exception(description);
 
                 foreach (string key in keys)
@@ -2372,8 +2336,7 @@ namespace QueriesTestApplication
 
                 }
 
-                Helper.ValidateDictionary(dictionary);
-
+                
 
                 _report.AddPassedTestCase(methodName, description);
 
@@ -2412,10 +2375,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@beverages", "Beverages");
                 queryCommand.Parameters.Add("@jArray", jArray);
 
-                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
 
                 _report.AddFailedTestCase(methodName, new Exception(description));
 
@@ -2447,11 +2409,11 @@ namespace QueriesTestApplication
         //        string query = "Update  Alachisoft.NCache.Sample.Data.Product Set Order.ShipCity = '\"abcd\"' test Category = '\"meat\"' where Name = ?";
         //        QueryCommand queryCommand = new QueryCommand(query);
         //        queryCommand.Parameters.Add("Name", Guid.NewGuid().ToString());
-        //        IDictionary dictionary;
+        //        IDictionary<string, Exception> dictionary;
         //        Stopwatch stopwatch = new Stopwatch();
         //        stopwatch.Start();
 
-        //        updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+        //        updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
 
         //        stopwatch.Stop();
@@ -2818,10 +2780,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@beverages", "Beverages");
                 queryCommand.Parameters.Add("@jOrder", jorder);
 
-                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
                 foreach (var key in keys)
                 {
                     _ = cache.Get<JsonObject>(key);
@@ -2867,10 +2828,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@beverages", "Beverages");
                 queryCommand.Parameters.Add("@jOrder", jArray);
 
-                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
                 foreach (var key in keys)
                 {
                     var jsonObj = cache.Get<JsonObject>(key);
@@ -2923,10 +2883,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@beverages", "Beverages");
                 queryCommand.Parameters.Add("@jOrder", jArray);
 
-                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
 
                 _report.AddFailedTestCase(methodName, new Exception(description));
 
@@ -2967,10 +2926,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@beverages", "Beverages");
                 queryCommand.Parameters.Add("@jArray", jArray);
 
-                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
 
                 _report.AddFailedTestCase(methodName, new Exception(description));
 
@@ -3012,10 +2970,9 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@beverages", "Beverages");
                 queryCommand.Parameters.Add("@jArray", jArray);
 
-                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var dictionary);
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
 
                 // ToDo Validataion after discussion with sir taimoor
 
@@ -3045,8 +3002,7 @@ namespace QueriesTestApplication
 
                 }
 
-                Helper.ValidateDictionary(dictionary);
-
+                
 
                 _report.AddPassedTestCase(methodName, description);
 
@@ -3174,10 +3130,9 @@ namespace QueriesTestApplication
 
                 string query = "Update  Alachisoft.NCache.Sample.Data.Product Remove this.Order.ValueThatDoesnotExist ";
                 QueryCommand queryCommand = new QueryCommand(query);
-                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out var failedOperation);
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(failedOperation);
-
+                
                 _report.AddFailedTestCase(methodName, new Exception(description));
 
 
@@ -3218,14 +3173,13 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@ProductName", jorder);
                 queryCommand.Parameters.Add("Id", Convert.ToInt32(1));
 
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
 
                 _report.AddFailedTestCase(methodName, new Exception("Test Object with wrong values didn't throw exception"));
 
@@ -3256,26 +3210,26 @@ namespace QueriesTestApplication
                 string query = "Update  Alachisoft.NCache.Sample.Data.Product Set Order.ShipCity = '\"abcd\"' test Category = '\"meat\"' where UnitPrice > ?";
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("UnitPrice", Convert.ToDecimal(100));
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                var result = cache.SearchService.ExecuteNonQuery(queryCommand);
+                //dictionary = result.FailedOperations;
+                //foreach (var val in dictionary)
+                //{
+                //    string ex = val.Value.ToString();
+                //    string key = val.Key.ToString();
+                //    if (ex.Contains("Specified value not equals to test value"))
+                //    {
+                //        var prod = cache.Get<Product>(key);
+                //        if (prod != null && prod.UnitPrice > 100 && prod.Category != "meat")
+                //            continue;
 
-                foreach (DictionaryEntry val in dictionary)
-                {
-                    string ex = val.Value.ToString();
-                    string key = val.Key.ToString();
-                    if (ex.Contains("Specified value not equals to test value"))
-                    {
-                        var prod = cache.Get<Product>(key);
-                        if (prod != null && prod.UnitPrice > 100 && prod.Category != "meat")
-                            continue;
+                //    }
+                //    throw new Exception("test case failed");
 
-                    }
-                    throw new Exception("test case failed");
-
-                }
+                //}
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
                 string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
@@ -3334,7 +3288,7 @@ namespace QueriesTestApplication
                 string query = "Update Alachisoft.NCache.Sample.Data.Product Set Name.Class = '\"Tea\"', Order.ShipCity = '\"Lahore\"' Add Order.Type = '\"Important\"'  where Category = ?";
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("Category", "Beverages");
-                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out _);
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
                 foreach (var item in productList)
                 {
 
@@ -3684,14 +3638,13 @@ namespace QueriesTestApplication
                 string query = "Update  Alachisoft.NCache.Sample.Data.Product  Set this.Name = '\"Tea\"' Copy Order.ShipCountry = Order.ShipCity move this.Time = this.Order.Product.Time where UnitPrice > ?";
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("UnitPrice", Convert.ToDecimal(100));
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 Stopwatch stopwatch = new Stopwatch();
                 stopwatch.Start();
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
                 stopwatch.Stop();
                 TimeSpan ts = stopwatch.Elapsed;
                 string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",

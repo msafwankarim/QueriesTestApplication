@@ -53,6 +53,13 @@ namespace Alachisoft.NCache.Sample.Data
 
         public ImageFormat() { }
         public ImageFormat(string format ) { Format = format; }
+
+        public override bool Equals(object obj)
+        {
+            if(Format == null || obj == null) return false;
+
+            return Format.Equals(((ImageFormat)obj).Format);
+        }
     }
 
     [Serializable]

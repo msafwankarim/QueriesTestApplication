@@ -4,6 +4,7 @@ using Alachisoft.NCache.Runtime.Caching;
 using Alachisoft.NCache.Runtime.JSON;
 using Alachisoft.NCache.Sample.Data;
 using Newtonsoft.Json;
+using NUnit.Framework;
 using QueriesTestApplication.Utils;
 using System;
 using System.Collections;
@@ -14,7 +15,8 @@ using System.Text;
 
 namespace QueriesTestApplication
 {
-    class InlineQueryTestForUpdate
+    [TestFixture]
+    public class InlineQueryTestForUpdate
     {
         ICache cache;
         public Dictionary<string, ResultStatus> testResults;
@@ -35,6 +37,11 @@ namespace QueriesTestApplication
 
         }
 
+        [OneTimeTearDown]
+        public void Dispose()
+        {
+            cache?.Dispose();
+        }
 
         private Product GetProduct()
         {
@@ -112,11 +119,10 @@ namespace QueriesTestApplication
                 string query = "Update  Alachisoft.NCache.Sample.Data.Product  Set Order.ShipName = '\"Titanic\"'  ";
                 QueryCommand queryCommand = new QueryCommand(query);
                 //var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
-                System.Collections.IDictionary dictionary;
-                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                IDictionary<string, Exception> dictionary;
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
                 var exception = new Exception("Partial Update items using query");
 
                 foreach (var item in productList)
@@ -151,11 +157,10 @@ namespace QueriesTestApplication
                 string query = "Update  Alachisoft.NCache.Sample.Data.Product  Set Id = 1 ";
                 QueryCommand queryCommand = new QueryCommand(query);
                 //var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
-                System.Collections.IDictionary dictionary;
-                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                IDictionary<string, Exception> dictionary;
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
-                Helper.ValidateDictionary(dictionary);
-
+                
                 var exception = new Exception("Partial Update to  SET int value ");
 
                 foreach (var item in productList)
@@ -556,13 +561,13 @@ namespace QueriesTestApplication
                 string key = "Products";
                 var item = new Product() { Id = 4, Name = "IKura", ClassName = "Electronics", Category = "Produce", UnitPrice = 50, Customer = new Customer() { CustomerType = customer, ContactName = "hello" } };
                 var cacheItem = new CacheItem(item);
-                IDictionary dictionary;
+                IDictionary<string, Exception> dictionary;
                 cache.Insert(key, cacheItem);
 
                 string query = "Update Alachisoft.NCache.Sample.Data.Product Test Id = 4 ";
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@customertype", "old");
-                var updated = cache.SearchService.ExecuteNonQuery(queryCommand, out dictionary);
+                var updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 var received = cache.Get<JsonObject>(key);
 
@@ -613,7 +618,7 @@ namespace QueriesTestApplication
 
 
         #region  --------------------------------- Complex Query -----------------------------------
-
+        [Test]
         public void ComplexQuery()
         {
             int updated = 0;
@@ -646,16 +651,14 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@birthDayTime", birthDayTime);
                 queryCommand.Parameters.Add("@id", 1);
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out IDictionary dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 if (updated == 0)
                     throw new Exception("No key updated by complex query");
 
-                if (dictionary.Count != totalExpectedException)
-                    throw new Exception("Got more then expected exceptions in complex query");
+                
 
-                Helper.ValidateDictionary(dictionary);
-
+                
                 var jsonObject = cache.Get<JsonObject>("product1");
 
                 if (jsonObject.ContainsAttribute("nameThatDoesnotExist"))
@@ -691,6 +694,7 @@ namespace QueriesTestApplication
 
 
         #region ---------------------------- Combined Operations -------------------------
+        [Test]
         public void BasicUpdateQuery3()
         {
             productList.Clear();

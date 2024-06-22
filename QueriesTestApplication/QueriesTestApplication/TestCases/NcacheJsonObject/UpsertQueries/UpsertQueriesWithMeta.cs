@@ -22,10 +22,11 @@ using Alachisoft.NCache.Runtime.CacheManagement;
 using System.CodeDom;
 using System.Linq;
 using System.Collections;
+using NUnit.Framework;
 
 namespace QueriesTestApplication
 {
-    class UpsertQueriesWithMeta
+    public class UpsertQueriesWithMeta
     {
         private readonly ICache _cache;
         private readonly Report _report;
@@ -40,6 +41,12 @@ namespace QueriesTestApplication
         {
             _cache = CacheManager.GetCache(Common.CacheName);
             _report = new Report(nameof(UpsertQueriesWithMeta));
+        }
+
+        [OneTimeTearDown]
+        public void Dispose()
+        {
+            _cache.Dispose();
         }
 
         public void AddAndGetSimpleItemForUpsert()
@@ -493,8 +500,8 @@ namespace QueriesTestApplication
         #region --------------------------------- File Dependency ----------------------
 
 
-
-        private void VerifyFileDependencyWithArrayOfFiles()
+        [Test]
+        public void VerifyFileDependencyWithArrayOfFiles()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
             _cache.Clear();
@@ -506,11 +513,11 @@ namespace QueriesTestApplication
                 var preInsert = InsertCacheItem();
 
                 string filePath = "C:\\\\dependencyFile.txt";
-                File.AppendAllText(filePath, $"\n {methodName} => This file is used to verify file dependency in ncache by queries. {DateTime.Now}");
+                //File.AppendAllText(filePath, $"\n {methodName} => This file is used to verify file dependency in ncache by queries. {DateTime.Now}");
 
                 string query = "Upsert INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
 
-                var jsonString = "{\"dependency\": [{\"file\": {\"filenames\":[" + $"\"{filePath}\"" + "]}}]}";
+                var jsonString = "{\"dependency\": [{\"file\": {\"fileNames\": [\"C:/dependencyFile.txt\"],\"interval\": \"638507656889100696\"}}]}";
 
                 var jsonObj = new JsonObject(jsonString);
 
@@ -724,7 +731,7 @@ namespace QueriesTestApplication
 
     }
 
-    class MetaInfo
+    public class MetaInfo
     {
 
         public static  NamedTagsDictionary NamedTags { get => GetNamedTags(); }

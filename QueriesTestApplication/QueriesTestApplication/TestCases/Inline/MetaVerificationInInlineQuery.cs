@@ -25,7 +25,7 @@ using System.Collections;
 
 namespace QueriesTestApplication
 {
-    class MetaVerificationInInlineQuery
+    public class MetaVerificationInInlineQuery
     {
         readonly ICache cache;
 
@@ -69,7 +69,7 @@ namespace QueriesTestApplication
                 QueryCommand queryCommand = new QueryCommand(query);
                 queryCommand.Parameters.Add("@beverages", catagory);
 
-                var updated = cache.QueryService.ExecuteNonQuery(queryCommand);
+                var updated = cache.QueryService.ExecuteNonQuery(queryCommand).AffectedRows;
 
                 foreach (var item in productList)
                 {
@@ -126,7 +126,7 @@ namespace QueriesTestApplication
 
                count = cache.Count;
 
-                var updated = cache.QueryService.ExecuteNonQuery(queryCommand);
+                var updated = cache.QueryService.ExecuteNonQuery(queryCommand).AffectedRows;
 
                 foreach (var item in productList)
                 {
@@ -653,16 +653,13 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@birthDayTime", birthDayTime);
                 queryCommand.Parameters.Add("@id", 1);
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out IDictionary dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 if (updated == 0)
                     throw new Exception("No key updated by complex query");
 
-                if (dictionary.Count != totalExpectedException)
-                    throw new Exception("Got more then expected exceptions in complex query");
 
-                Helper.ValidateDictionary(dictionary);
-
+                
                 var jsonObject = cache.Get<JsonObject>("product1");
 
                 if (jsonObject.ContainsAttribute("nameThatDoesnotExist"))

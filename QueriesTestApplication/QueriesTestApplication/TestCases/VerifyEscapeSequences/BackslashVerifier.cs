@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 
 namespace QueriesTestApplication.VerifyEscapeSequences
 {
-    internal class BackslashVerifier
+    public class BackslashVerifier
     {
         public string _city = @"Islamabad\Pakistan";
         public string _jsonCity = @"Islamabad\\Pakistan";
@@ -19,7 +19,7 @@ namespace QueriesTestApplication.VerifyEscapeSequences
         Report _report;
         public Report Report { get => _report; }
 
-        internal BackslashVerifier()
+        public BackslashVerifier()
         {
             _report = new Report(nameof(BackslashVerifier));
         }

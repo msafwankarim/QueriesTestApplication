@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Client2": {
+      "commandName": "Project",
+      "commandLineArgs": "queryTest"
+    }
+  }
+}

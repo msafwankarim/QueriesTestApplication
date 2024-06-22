@@ -1,11 +1,11 @@
 {
   "profiles": {
     "QueriesTestApplication": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "-c queryTest -m update -i 600"
     },
     "WSL": {
       "commandName": "WSL2",
-      "environmentVariables": {},
       "distributionName": ""
     }
   }

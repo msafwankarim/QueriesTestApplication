@@ -6,6 +6,7 @@ using Alachisoft.NCache.Runtime.JSON;
 using Alachisoft.NCache.Sample.Data;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NUnit.Framework;
 using QueriesTestApplication.Utils;
 using System;
 using System.Collections.Generic;
@@ -41,7 +42,11 @@ namespace QueriesTestApplication
             get { return testResults; }
         }
 
-
+        [OneTimeTearDown]
+        public void Dispose()
+        {
+            cache?.Dispose();
+        }
 
         //public void Add0(string query)
         //{
@@ -78,6 +83,15 @@ namespace QueriesTestApplication
         //}
         ////--- Add a key-value pair. Precondition: key not present.
 
+        [Test]
+        public void InsertDateTime()
+        {
+            cache.Clear();
+
+            var queryCommand = new QueryCommand("INSERT INTO System.DateTime.Key (KEY, VALUE) VALUES('k1', @val)");
+            queryCommand.Parameters.Add("@val", "test");
+            var rows = cache.SearchService.ExecuteNonQuery(queryCommand);            
+        }
 
         public void AddProductThatISAlreadyAdded()
         {
@@ -1256,7 +1270,7 @@ namespace QueriesTestApplication
                                               }");
 
 
-                    var result = cache.SearchService.ExecuteNonQuery(qc);
+                    var result = cache.QueryService.ExecuteNonQuery(qc);
 
                 }
 

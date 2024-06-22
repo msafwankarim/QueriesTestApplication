@@ -15,7 +15,7 @@ namespace QueriesTestApplication.Utils
 
         public static string TestOperationExceptionMessage { get => _testOperationExceptionMessage; }
 
-        public static void ValidateDictionary(IDictionary dictionary)
+        public static void ValidateDictionary(IDictionary<string, Exception> dictionary)
         {
             if (dictionary.Count > 0)
             {

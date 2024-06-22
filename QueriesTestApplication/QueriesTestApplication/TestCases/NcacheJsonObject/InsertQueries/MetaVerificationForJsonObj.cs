@@ -21,10 +21,11 @@ using System.Configuration.Provider;
 using Alachisoft.NCache.Runtime.CacheManagement;
 using System.CodeDom;
 using System.Linq;
+using NUnit.Framework;
 
 namespace QueriesTestApplication
 {
-    class MetaVerificationTestForJsonObj
+    public class MetaVerificationTestForJsonObj
     {
         private readonly ICache _cache;
         private readonly Report _report;
@@ -41,6 +42,11 @@ namespace QueriesTestApplication
             _report = new Report(nameof(MetaVerificationTestForJsonObj));
         }
 
+        [OneTimeTearDown]
+        public void Dispose()
+        {
+            _cache.Dispose();
+        }
         public void AddAndGetSimpleItem()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
@@ -402,6 +408,7 @@ namespace QueriesTestApplication
 
         #region --------------------------------- Group  -------------------------------
 
+        [Test]
         public void GroupMetadataInJsonObject()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
@@ -410,7 +417,8 @@ namespace QueriesTestApplication
             {
                 _cache.Clear();
 
-                string JsonString = "{\"group\":\"DevTeam\"}";
+                string JsonString = "{\"group\":[\"DevTeam\", \"Shampoo\"]}";
+                 JsonString = "{\"group\":\"DevTeam\"}";
                 var MetaData = new JsonObject(JsonString);
 
                 string key1 = "key_GroupMetadataInJObject";
@@ -448,7 +456,6 @@ namespace QueriesTestApplication
 
 
         #region --------------------------------- Tags ---------------------------------
-
         public void TestTagMetadataWithByAnyTag()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
@@ -465,15 +472,17 @@ namespace QueriesTestApplication
                 string key1 = "abc";
                 var val = GetProduct();
 
-                string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
-
+                //string query = "Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+                string query = "Insert into System.String (Key,Value,Meta) Values ('k1', 'v1', '{ \"tags\":[\"t1\", \"t2\"] }')";
                 QueryCommand queryCommand = new QueryCommand(query);
 
-                queryCommand.Parameters.Add("@key1", key1);
-                queryCommand.Parameters.Add("@val", val);
-                queryCommand.Parameters.Add("@metadata", MetaData);
+                //queryCommand.Parameters.Add("@key1", key1);
+                //queryCommand.Parameters.Add("@val", val);
+                //queryCommand.Parameters.Add("@metadata", MetaData);
 
                 var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
+
+                var itemp = _cache.GetCacheItem("k1");
 
                 Tag[] SearchTags = new Tag[2] { new Tag("Important Product"), new Tag("Imported Product") };
 
@@ -942,7 +951,7 @@ namespace QueriesTestApplication
                 string AddItemWithDependencyQuery = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
 
                 //var JsonForDependency = @"{'dependency': [{'sql': {'connectionstring': 'Data Source=AQIB-NAVEED;Initial Catalog=Northwind;Integrated Security=True;','querystring': 'SELECT CustomerID, Address, City FROM dbo.Customers;'}}]}";
-                var JsonForDependency = "{\"dependency\": [{\"sql\": {\"connectionstring\": \"Data Source=AQIB-NAVEED;Initial Catalog=Northwind;Integrated Security=True;\",\"querystring\": \"SELECT CustomerID, Address, City FROM dbo.Customers;\"}}]}";
+                var JsonForDependency = "{\"dependency\": [{\"sql\": {\"connectionstring\": \"Data Source=SAFWAN-KARIM\\\\SQLEXPRESS;Initial Catalog=Northwind;Integrated Security=True;User Id=safwan_karim;Password=safwan\",\"querystring\": \"SELECT CustomerID, Address, City FROM dbo.Customers;\"}}]}";
                 var jsonObject = new JsonObject(JsonForDependency);
                 QueryCommand queryCommand = new QueryCommand(AddItemWithDependencyQuery);
 
@@ -960,7 +969,7 @@ namespace QueriesTestApplication
 
                 // Explicitly make some change in DB
 
-                string connetionString = @"Data Source=AQIB-NAVEED;Initial Catalog=Northwind;Integrated Security=True;";
+                string connetionString = @"Data Source=SAFWAN-KARIM\SQLEXPRESS;Initial Catalog=Northwind;Integrated Security=True;User Id=safwan_karim;Password=safwan";
                 SqlConnection cnn = new SqlConnection(connetionString);
                 cnn.Open();
 
@@ -1008,8 +1017,7 @@ namespace QueriesTestApplication
 
 
         #region --------------------------------- Custom Dependency --------------------
-            
-        private void VerifyExtensibleDependency()
+        public void VerifyExtensibleDependency()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
             _cache.Clear();
@@ -1152,7 +1160,7 @@ namespace QueriesTestApplication
                     _report.AddPassedTestCase(methodName, "Success: Add NotifyExtensible Dependency ");
 
                 else
-                    throw new Exception("Failure: Add Custom Dependency ");
+                    throw new Exception("Failure: Add NotifyExtensible Dependency ");
 
             }
             catch (Exception ex)
@@ -1336,7 +1344,7 @@ namespace QueriesTestApplication
 
         }
 
-        private void SlidingExpirationInJsonObject()
+        public void SlidingExpirationInJsonObject()
         {
             var methodName = MethodBase.GetCurrentMethod().Name;
             try
@@ -1347,7 +1355,7 @@ namespace QueriesTestApplication
 
                 JsonObject expiration = new JsonObject();
                 expiration.AddAttribute("type", "sliding");
-                expiration.AddAttribute("interval", ExpirationTimes.SlidingExpirationSeconds);
+                expiration.AddAttribute("interval", 2);
 
                 MetaData.AddAttribute("expiration", expiration);
 
@@ -1371,8 +1379,7 @@ namespace QueriesTestApplication
                 if (expirationFromCache.Type != ExpirationType.Sliding)
                     throw new Exception("Cache item obtanined doesnot have sliding expiration");
 
-                int sleepTime = ExpirationTimes.SlidingExpirationSeconds * 1000 + _cleanIntervalSeconds * 1000;
-                sleepTime = sleepTime + 2000;
+                var sleepTime = TimeSpan.FromSeconds(20);
                 Console.WriteLine($"Waiting for {sleepTime} milli seconds before verifying sliding expiration");
                 Thread.Sleep(sleepTime);
 
@@ -1778,8 +1785,6 @@ namespace QueriesTestApplication
 
 
         #region --------------------------------- File Dependency ----------------------
-
-
         private void VerifyFileDependency()
         {
 
@@ -1943,6 +1948,26 @@ namespace QueriesTestApplication
 
         #region --------------------------------- Cache item version  ------------------
 
+        public void Test_SelectLikeOperater()
+        {
+            string selectQuery = "SELECT * FROM Alachisoft.NCache.Products WHERE x LIKE @shampoo";
+            QueryCommand queryCommand = new QueryCommand(selectQuery);
+            queryCommand.Parameters.Add("@shampoo","Bio Aamla");
+
+            var reader = _cache.SearchService.ExecuteReader(queryCommand);
+
+        }
+
+        public void Test_SelectINOperater()
+        {
+            string selectQuery = "SELECT * FROM Alachisoft.NCache.Products WHERE x IN ('21', '32', @variable, 'string')";
+            QueryCommand queryCommand = new QueryCommand(selectQuery);
+            queryCommand.Parameters.Add("@shampoo", "Bio Aamla");
+
+            var reader = _cache.SearchService.ExecuteReader(queryCommand);
+
+        }
+
         public void VerifyCacheItemVersion()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
@@ -1957,7 +1982,7 @@ namespace QueriesTestApplication
                 CacheItemVersion version = _cache.Insert(guidKey, item);
                 ulong itemVersion = version.Version;
 
-                string query = "UPSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
+                string query = "UPSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value, Meta) Values (@key, @value1, @META)";
 
                 var jsonObj = new JsonObject();
                 jsonObj.AddAttribute("CacheItemVersion", itemVersion);
@@ -1965,9 +1990,10 @@ namespace QueriesTestApplication
 
 
                 QueryCommand queryCommand = new QueryCommand(query);
-                queryCommand.Parameters.Add("@key1", Itemkey);
-                queryCommand.Parameters.Add("@val", item);
-                queryCommand.Parameters.Add("@metadata", jsonObj);
+                queryCommand.Parameters.Add("@key", Itemkey);
+                queryCommand.Parameters.Add("@value1", jsonObj);
+                queryCommand.Parameters.Add("@META", "{ 'priority': 'low' }");
+                //queryCommand.Parameters.Add("@metadata", jsonObj);
 
                 var result = _cache.SearchService.ExecuteNonQuery(queryCommand);
 
@@ -1985,6 +2011,7 @@ namespace QueriesTestApplication
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.ToString());
                 _report.AddFailedTestCase(methodName, ex);
             }
 
@@ -2126,7 +2153,7 @@ namespace QueriesTestApplication
                 var write = new WriteThruOptions(WriteMode.WriteThru);
                 // _cache.Insert("sd",new CacheItem("kd"),write);
 
-                var result = _cache.QueryService.ExecuteNonQuery(queryCommand, write);
+                var result = _cache.QueryService.ExecuteNonQuery(queryCommand);
 
                 var cacheItem = _cache.GetCacheItem(Itemkey);
 

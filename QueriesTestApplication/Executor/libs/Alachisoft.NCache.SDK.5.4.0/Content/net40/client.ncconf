@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Client configuration file is used by client to connect to out-proc stores. 
+Light weight client also uses this configuration file to connect to the remote stores. 
+-->
+  <configuration>
+    <connection-options client-request-timeout="90" port="9800">
+      <keep-alive enabled="False" interval="30sec"/>
+      <connection-retries retry-count="3" retry-interval="1sec" retry-delay="0sec" timeout="5sec"/>
+      <command-retries retry-count="3" retry-interval="0.1"/>
+    </connection-options>
+     <store name="myCache">
+      <servers>
+        <server ip="10.0.5.1"/>
+      </servers>
+      <client-balancing enabled="True"/>
+      <client-logs enabled="False" level="error"/>
+    </store>
+    <server-endpoints>
+    </server-endpoints>
+  </configuration>

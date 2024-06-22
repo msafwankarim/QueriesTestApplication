@@ -1,6 +1,8 @@
 ﻿using Alachisoft.NCache.Client;
 using Alachisoft.NCache.Runtime.JSON;
 using Alachisoft.NCache.Sample.Data;
+//using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using QueriesTestApplication.Utils;
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.Reflection;
 
 namespace QueriesTestApplication
 {
+    //[TestClass]
     public class InsertQueriesTestForJsonObj
     {
         private int count = 0;
@@ -19,8 +22,14 @@ namespace QueriesTestApplication
         private Report _report;
 
         public Report Report { get => _report; }
-
+        
         public InsertQueriesTestForJsonObj()
+        {
+            TestInit();
+        }
+
+        //[TestInitialize]
+        public void TestInit()
         {
             cache = CacheManager.GetCache(Common.CacheName);
             testResults = new Dictionary<string, ResultStatus>();
@@ -78,10 +87,11 @@ namespace QueriesTestApplication
             }
 
         }
-                
+
         /// <summary>
         /// Adds a JSON Object of Product class in cache.
         /// </summary>
+        //[TestMethod]
         public void AddJsonObject()
         {
             cache.Clear();
@@ -89,6 +99,7 @@ namespace QueriesTestApplication
 
             Product product = new Product() { Id = 1, Time = DateTime.Now, Name = "Chai", Manufacturers = new string[2] { "AlachiSoft", "DiyaTech" }, ClassName = "Electronics", Category = "Beverages", UnitPrice = 35, Order = new Alachisoft.NCache.Sample.Data.Order { OrderID = 10, ShipCity = "rawalpindi", ShipCountry = "Pakistan" } };
             cache.Insert("1", product);
+            var item = cache.Get<Product>("1");
             try
             {
 

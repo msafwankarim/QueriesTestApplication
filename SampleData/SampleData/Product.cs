@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using Alachisoft.NCache.Runtime.Caching;
 using System;
 using System.Text;
 
@@ -17,6 +17,8 @@ namespace Alachisoft.NCache.Sample.Data
     /// <summary>
     /// Model class for products
     /// </summary>
+    /// 
+    [QueryIndexable]
     [Serializable]
     public class Product
     {
@@ -45,14 +47,31 @@ namespace Alachisoft.NCache.Sample.Data
        // [JsonProperty]
         private int _unitsAvailable;
         //[JsonProperty]
-        private DateTime _time;
+        //private DateTime _time;
         //[JsonProperty]
         private Customer _customer;
         //[JsonProperty]
         private Order _order;
 
+        private string _productName;
+
+        public string ProductName { get => _productName; set => _productName = value; }
+
+        //public string ProductName3
+        //{
+        //    set
+        //    {
+        //        _productName = value;
+        //    }
+        //}
+
+
         public Product() { }
-               
+
+        public string testField = null;
+
+        public Product(bool expirable) { _expirable = expirable; testField = nameof(expirable); }
+
         public string[] Manufacturers {
             set;
             get;
@@ -72,6 +91,7 @@ namespace Alachisoft.NCache.Sample.Data
         /// <summary>
         /// Unique id assigned to each product
         /// </summary>
+        /// 
         public virtual int Id
         {
             set;
@@ -92,8 +112,14 @@ namespace Alachisoft.NCache.Sample.Data
         /// </summary>
         public virtual string Name
         {
-            set;
-            get;
+            set
+            {
+                _name = value;
+            }
+            get
+            {
+                return _name;
+            }
         }
 
         /// <summary>
@@ -134,6 +160,7 @@ namespace Alachisoft.NCache.Sample.Data
         public DateTime Time { get; set; }
         public Customer Customer { get; set; }
         public Order Order { get; set; }
+        public object ProductID { get; set; }
 
         /// <summary>
         /// This method returns the information about this product in string format.
@@ -167,6 +194,11 @@ namespace Alachisoft.NCache.Sample.Data
             return builder.ToString();
         }
 
+        public void SetPrivateUnitsAvailable(int unitsAvailable)
+        {
+            this._unitsAvailable = unitsAvailable;
+        }
+
         /// <summary>
         /// This method sets value for all private fields
         /// </summary>        
@@ -181,7 +213,7 @@ namespace Alachisoft.NCache.Sample.Data
             _category = category;
             _quantityPerUnit = quantityPerUnit;
             _unitsAvailable = unitsAvailable;
-            _time = time;
+            //_time = time;
             _customer = customer;
             _order = order;
         }
@@ -203,7 +235,7 @@ namespace Alachisoft.NCache.Sample.Data
             _category = Category;
             _quantityPerUnit = QuantityPerUnit;
             _unitsAvailable = UnitsAvailable;
-            _time = Time;
+            //_time = Time;
             _customer = Customer;
             _order = Order;
         }

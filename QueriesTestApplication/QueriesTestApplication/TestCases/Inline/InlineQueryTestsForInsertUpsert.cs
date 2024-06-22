@@ -1,17 +1,23 @@
-﻿using Alachisoft.NCache.Client;
+﻿using Alachisoft.NCache.Caching.Queries.Filters;
+using Alachisoft.NCache.Client;
 using Alachisoft.NCache.Common.Net;
+using Alachisoft.NCache.Runtime.Caching;
 using Alachisoft.NCache.Runtime.JSON;
 using Alachisoft.NCache.Sample.Data;
 using Newtonsoft.Json;
+using NUnit.Framework;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 
 namespace QueriesTestApplication
 {
-    class InlineQueryTestsForInsertUpsert
+    [TestFixture]
+    public class InlineQueryTestsForInsertUpsert
     {
         private int count = 0;
         ICache cache;
@@ -19,14 +25,25 @@ namespace QueriesTestApplication
         List<Product> productList;
         public InlineQueryTestsForInsertUpsert()
         {
-            cache = CacheManager.GetCache(Common.CacheName);
-            testResults = new Dictionary<string, ResultStatus>();
-            productList = new List<Product>();
         }
 
         public Dictionary<string, ResultStatus> TestResults
         {
             get { return testResults; }
+        }
+
+        [OneTimeTearDown]
+        public void Dispose()
+        {
+            cache?.Dispose();
+        }
+
+        [OneTimeSetUp]
+        public void EnsureCacheConnection()
+        {
+            cache = CacheManager.GetCache(Common.CacheName);
+            testResults = new Dictionary<string, ResultStatus>();
+            productList = new List<Product>();
         }
 
         /// <summary>
@@ -105,9 +122,55 @@ namespace QueriesTestApplication
                 testResults.Add(methodName, ResultStatus.Failure);
             }
         }
+
+        [Test]
+        public void VerifyNegative()
+        {
+            cache.Clear();
+
+            string key = "abc";
+            string query = "INSERT INTO Products (Key, Value) VALUES ('k1', -mycustomstring)";
+
+            cache.SearchService.ExecuteNonQuery(new QueryCommand(query));
+
+            Thread.Sleep(500);
+
+            var item = cache.Get<string>("k1");
+            Assert.That(item, Is.EqualTo("-mycustomstring"));
+        }
+
+        [Test]
+        public void VerifyNegativeNumber()
+        {
+            cache.Clear();
+
+            string key = "abc";
+            var product = new Product();
+            product.Id = -343;
+            cache.Insert(key, product);
+
+            string query = "SELECT * FROM Alachisoft.NCache.Sample.Data.Product WHERE Id IN (2, -343, 4)";
+
+            using var reader = cache.SearchService.ExecuteReader(new QueryCommand(query));
+            Console.WriteLine(reader.FieldCount);
+
+            while(reader.Read())
+            {
+                Console.WriteLine("Key = " + reader.GetValue<string>(0));
+            }
+
+            Thread.Sleep(500);            
+
+            var item = cache.Get<Product>(key);
+            //var value = item.Evaluate();
+            //Assert.That(item, Is.EqualTo(-53));
+        }
+
         /// <summary>
         ///  Add JSON Object having all datatypes in cache by inline
         /// </summary>
+        /// 
+        [Test]
         public void VerifyJsonDatatypesInline()
         {
 
@@ -116,7 +179,7 @@ namespace QueriesTestApplication
             {
                 cache.Clear();
                 string key = "abc";
-
+                
                 string insertQuery = "Upsert into AnyClass (Key,Value) " +
                     "Values ('abc'," +
                     "'{\"Name\":\"Chai\"," +
@@ -181,6 +244,8 @@ namespace QueriesTestApplication
         /// <summary>
         /// Inserts a String having \\ slashes in cache
         /// </summary>
+
+        [Test]
         public void Add1()
         {
             var methodName = "Add1";
@@ -204,44 +269,118 @@ namespace QueriesTestApplication
             }
 
         }
+
+        [Test]
+        public void Select()
+        {
+            cache.Clear();
+            //for(int i = 0; i < 10; i++)
+            //{
+            //    cache.Insert($"k{i}", new Employee()
+            //    {
+            //        Id = i
+            //    });
+            //}
+
+            cache.Insert("k1", new Employee()
+            {
+                Id = 24,
+                FirstName = ""
+            });
+            cache.Insert("k2", new Employee()
+            {
+                Id = 24,
+                FirstName = "$null$"
+            });
+
+            cache.Insert("k3", new Employee()
+            {
+                Id = 24,
+                FirstName = "john"
+            });
+
+            cache.Insert("k4", new Employee()
+            {
+                Id = 24,
+                FirstName = null
+            });
+
+            var command = new QueryCommand("SELECT * FROM QueriesTestApplication.Employee WHERE FirstName = null OR FirstName = ''");
+            command.Parameters.Add("Id", new ArrayList() { 2, 5});            
+            var reader = cache.SearchService.ExecuteReader(command);
+
+            while (reader.Read())
+            {
+                var x = reader.GetString(0);
+                Console.WriteLine(x);
+            }
+        }
+
         //--- Add through json serialization
+        [Test]
         public void Add2()
         {
             var methodName = "Add2";
-            try
+
+            cache.Clear();
+            Employee employee = new Employee
             {
-                cache.Clear();
-                Employee employee = new Employee
-                {
-                    FirstName = "James",
-                    LastName = "Newton-King",
-                    Roles = new List<string>
+                FirstName = null,
+                LastName = "Newton-King",
+                Roles = new List<string>
                     {
                       "Admin"
                     }
-                };
-                var val = JsonConvert.SerializeObject(employee);
-
-                val = JsonConvert.SerializeObject(GetProduct());
-                string key = "abc";
-                string insertQuery = $"Insert into Alachisoft.NCache.Sample.Data.Product (Key,Value) Values ('abc', '{val}')";
-                QueryCommand queryCommand = new QueryCommand(insertQuery);
-                var insertresult = cache.SearchService.ExecuteNonQuery(queryCommand);
-
-                var returned = cache.Get<object>(key);
-                if (returned != null)
-                    Console.WriteLine("Success: Add primitime json data");
-                testResults.Add(methodName, ResultStatus.Success);
-            }
-            catch (Exception ex)
+            };
+            Employee employee2 = new Employee
             {
-                Console.WriteLine("Failure: Add primitime json data");
-                testResults.Add(methodName, ResultStatus.Failure);
+                FirstName = "",
+                LastName = "Newton-King",
+                Roles = new List<string>
+                    {
+                      "Admin"
+                    }
+            };
+            var val = JsonConvert.SerializeObject(employee);
+
+            //val = JsonConvert.SerializeObject(GetProduct());
+            var jObj = new JsonObject();
+            jObj["FirstName"] = "James";
+            jObj["Last"] = "Grapes";
+            jObj.Type = "QueriesTestApplication.Employee";
+
+            var rawStr = "{\"FirstName\":\"James\",\"LastName\":\"Newton-King\",\"Roles\":[\"Admin\"],\"PrivateId\":0,\"Id\":0}";
+            
+            string key = "abc";
+            string insertQuery = $"UPSERT into System.String (Key,Value) Values (@key, @val)";
+            QueryCommand queryCommand = new QueryCommand(insertQuery);
+            queryCommand.Parameters.Add("@key", "k2");
+            queryCommand.Parameters.Add("@val", "shampoo");
+
+            var insertresult = cache.SearchService.ExecuteNonQuery(queryCommand);
+
+            var returned = cache.Get<object>(key);
+
+            cache.JsonPatchService.Update("abc", new JsonPatch().Replace("/FirstName", "Johnny"));
+
+            var returned2 = cache.Get<object>("abc");
+
+            var reader = cache.SearchService.ExecuteReader(new QueryCommand("SELECT * FROM QueriesTestApplication.Employee WHERE FirstName = 'James'"));
+
+            while (reader.Read())
+            {
+                var x = reader.GetString(0);
+                Console.WriteLine(x);
             }
+
+            if (returned != null)
+                Console.WriteLine("Success: Add primitime json data");
+            testResults.Add(methodName, ResultStatus.Success);
 
         }
 
         //--- Add primitime json data array
+        [Test]
         public void Add3()
         {
             var methodName = "Add3";
@@ -311,6 +450,7 @@ namespace QueriesTestApplication
         }
         public void VerifyMetaData()
         {
+            
             count++;
             var methodName = "VerifyMetaData";
             try
@@ -544,8 +684,20 @@ namespace QueriesTestApplication
         }
 
     }
+
+    public class ObjectCommon
+    {
+        private int privateId;
+
+        public int PrivateId { get => privateId; set =>  privateId = value; }
+       
+    }
+
+    [QueryIndexable]
+    [Serializable]
     public class Employee
     {
+        public int Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public IList<string> Roles { get; set; }

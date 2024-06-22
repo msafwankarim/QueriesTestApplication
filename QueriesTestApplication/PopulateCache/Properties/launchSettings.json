@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PopulateCache": {
+      "commandName": "Project",
+      "commandLineArgs": "-c queryTest -m update -i 600"
+    }
+  }
+}

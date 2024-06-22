@@ -7,7 +7,7 @@ using System.Text;
 
 namespace QueriesTestApplication
 {
-    class InOperatorTesting
+    public class InOperatorTesting
     {
         ICache cache;
         public Dictionary<string, ResultStatus> testResults;

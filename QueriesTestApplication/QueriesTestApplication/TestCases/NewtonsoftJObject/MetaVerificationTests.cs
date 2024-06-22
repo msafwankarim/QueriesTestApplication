@@ -3,6 +3,7 @@ using Alachisoft.NCache.Runtime;
 using Alachisoft.NCache.Runtime.Caching;
 using Alachisoft.NCache.Runtime.JSON;
 using Alachisoft.NCache.Sample.Data;
+using NUnit.Framework;
 using QueriesTestApplication.Utils;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ using System.Threading;
 
 namespace QueriesTestApplication
 {
-    class MetaVerificationTests
+    public class MetaVerificationTests
     {
 
         private int count = 0;
@@ -35,8 +36,7 @@ namespace QueriesTestApplication
             testResults = new Dictionary<string, ResultStatus>();
             _report = new Report(nameof(MetaVerificationTests));
 
-        }
-        
+        }        
 
         // Left Cases
 
@@ -98,7 +98,6 @@ namespace QueriesTestApplication
 
 
         #region ------------------------- Priority Metadata -------------------------
-
         /// <summary>
         /// Adds JObject as MetaData having  information of Priority
         /// </summary>
@@ -172,7 +171,7 @@ namespace QueriesTestApplication
                 string AddItemWithDependencyQuery = "INSERT INTO Alachisoft.NCache.Sample.Data.Product (Key,Value,Meta) Values (@key1, @val,@metadata)";
 
                 //var JsonForDependency = @"{'dependency': [{'sql': {'connectionstring': 'Data Source=AQIB-NAVEED;Initial Catalog=Northwind;Integrated Security=True;','querystring': 'SELECT CustomerID, Address, City FROM dbo.Customers;'}}]}";
-                var JsonForDependency = "{\"dependency\": [{\"sql\": {\"connectionstring\": \"Data Source=AQIB-NAVEED;Initial Catalog=Northwind;Integrated Security=True;\",\"querystring\": \"SELECT CustomerID, Address, City FROM dbo.Customers;\"}}]}";
+                var JsonForDependency = "{\"dependency\": [{\"sql\": {\"connectionstring\": \"Data Source=SAFWAN-KARIM\\\\SQLEXPRESS;Initial Catalog=Northwind;Integrated Security=True;User Id=safwan_karim;Password=safwan\",\"querystring\": \"SELECT CustomerID, Address, City FROM dbo.Customers;\"}}]}";
 
                 QueryCommand queryCommand = new QueryCommand(AddItemWithDependencyQuery);
 
@@ -186,7 +185,7 @@ namespace QueriesTestApplication
 
                 // Explicitly make some change in DB
                 
-                string connetionString = @"Data Source=AQIB-NAVEED;Initial Catalog=Northwind;Integrated Security=True;";
+                string connetionString = @"Data Source=SAFWAN-KARIM\SQLEXPRESS;Initial Catalog=Northwind;Integrated Security=True;User Id=safwan_karim;Password=safwan";
                 SqlConnection cnn = new SqlConnection(connetionString);                
                 cnn.Open();
 
@@ -1028,7 +1027,7 @@ namespace QueriesTestApplication
 
        
         //verify meta by adding with sliding expiration
-        void VerifyMetaData4()
+        internal void VerifyMetaData4()
         {
             count++;
             int reveived = 0;
@@ -1291,12 +1290,12 @@ namespace QueriesTestApplication
                 //string path = "E:\\QueryTesting";
                // string filePath = GenerateFileName(path);
                 //Create(filePath);
-                File.AppendAllText(filePath, $" {methodName} => verify file dependency");
+                //File.AppendAllText(filePath, $" {methodName} => verify file dependency");
 
                 cache.Clear();
                 var key = GetKey();
 
-                string query = "Insert Into Alachisoft.Ncache.Sample.Data.Product (key,value,meta) values (@cachekey,@val,@data)";
+                string query = "Insert Into Alachisoft.NCache.Sample.Data.Product (key,value,meta) values (@cachekey,@val,@data)";
                 QueryCommand qc = new QueryCommand(query);
                 qc.Parameters.Add("@cachekey", key);
                 qc.Parameters.Add("@val", GetProduct());

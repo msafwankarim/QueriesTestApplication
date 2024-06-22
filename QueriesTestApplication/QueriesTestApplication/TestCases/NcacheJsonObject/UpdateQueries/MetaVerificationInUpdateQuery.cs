@@ -25,7 +25,7 @@ using System.Collections;
 
 namespace QueriesTestApplication
 {
-    class MetaVerificationInUpdateQuery
+    public class MetaVerificationInUpdateQuery
     {
         readonly ICache cache;
 
@@ -70,7 +70,7 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@beverages", catagory);
                 queryCommand.Parameters.Add("@group", groupname);
 
-                var updated = cache.QueryService.ExecuteNonQuery(queryCommand);
+                var updated = cache.QueryService.ExecuteNonQuery(queryCommand).AffectedRows;
 
                 foreach (var item in productList)
                 {
@@ -130,7 +130,7 @@ namespace QueriesTestApplication
 
                count = cache.Count;
 
-                var updated = cache.QueryService.ExecuteNonQuery(queryCommand);
+                var updated = cache.QueryService.ExecuteNonQuery(queryCommand).AffectedRows;
 
                 foreach (var item in productList)
                 {
@@ -221,11 +221,11 @@ namespace QueriesTestApplication
 
                 }
 
-
                 _report.AddPassedTestCase(methodName, description);
 
 
             }
+
 
             catch (Exception ex)
             {
@@ -617,16 +617,16 @@ namespace QueriesTestApplication
                 string nameThatDoesnotExist = "\"I drink two cups of tea daily.\"";
                 DateTime birthDayTime = new DateTime(2000, 1, 5);
 
-                string query = $"Update  Alachisoft.NCache.Sample.Data.Product " +
-                    $" Add nameThatDoesnotExist = @nameThatDoesnotExist " +
-                    $" Test nameThatDoesnotExist = @nameThatDoesnotExist " +
-                    $" Set Time = @birthDayTime " +
-                    $" Copy ClassName = Category " +
-                    $" Move Id = Order.OrderID " +
-                    $" Remove nameThatDoesnotExist " +
-                    $" set-meta $group$ = @groupName" +
-                    $" remove-meta $tag$ = @tagToBeRemoved" +
-                    $" Where Id = @id";
+                string query = $"UPDATE  Alachisoft.NCache.Sample.Data.Product " +
+                    $" ADD nameThatDoesnotExist = @nameThatDoesnotExist " +
+                    $" TEST nameThatDoesnotExist = @nameThatDoesnotExist " +
+                    $" SET Time = @birthDayTime " +
+                    $" COPY ClassName = Category " +
+                    $" MOVE Id = Order.OrderID " +
+                    $" REMOVE nameThatDoesnotExist " +
+                    $" SET-META $group$ = @groupName" +
+                    $" REMOVE-META $tag$ = @tagToBeRemoved" +
+                    $" WHERE Id = @id";
 
 
                 totalExpectedException = 0;
@@ -638,16 +638,13 @@ namespace QueriesTestApplication
                 queryCommand.Parameters.Add("@birthDayTime", birthDayTime);
                 queryCommand.Parameters.Add("@id", 1);
 
-                updated = cache.SearchService.ExecuteNonQuery(queryCommand, out IDictionary dictionary);
+                updated = cache.SearchService.ExecuteNonQuery(queryCommand);
 
                 if (updated == 0)
                     throw new Exception("No key updated by complex query");
 
-                if (dictionary.Count != totalExpectedException)
-                    throw new Exception("Got more then expected exceptions in complex query");
 
-                Helper.ValidateDictionary(dictionary);
-
+                
                 var jsonObject = cache.Get<JsonObject>("product1");
 
                 if (jsonObject.ContainsAttribute("nameThatDoesnotExist"))

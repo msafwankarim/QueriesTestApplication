@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Configuration;
 
 namespace QueriesTestApplication
 {
     public class Common
-    {        
-        public  static string CacheName { get; set; }
+    {
+        public static string CacheName 
+        { 
+            get { return ConfigurationManager.AppSettings["cache"] ?? "home-cache"; }
+        }
         public static Dictionary<string, Exception> Exceptions { get; set; }
         public enum Status
         {

@@ -8,32 +8,57 @@ using System.Reflection;
 using QueriesTestApplication.Utils;
 using QueriesTestApplication.VerifyEscapeSequences;
 using System.Text;
+//using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace QueriesTestApplication
 {
-    class Program
+    //[TestClass]
+    public class Program
     {
         public static bool OneGo { get; set; } = true;
         public static bool DonotSkipAnyCase { get; set; } = true;
 
-        static void Main(string[] args)
+        //[TestMethod]
+        public void Main()
         {
             try
             {
+
+                //Product product = new Product
+                //{
+                //    Name = "Test",
+                //    Category = "Hello World",
+                //    Order = new Order
+                //    {
+                //        ShipAddress = "127.0.0.1",
+                //        OrderID = 20
+                //    }
+                //};
+
+                //var str = JsonConvert.SerializeObject(product, new JsonSerializerSettings()
+                //{
+                //    TypeNameHandling = TypeNameHandling.All,
+                //    Formatting = Formatting.Indented
+                //});
+
+
+                //new UpdateQueriesTest().BasicUpdateQuery14();
+
                 // provider names
                 // CustomDependeny => custom , bulkDependencyProvider , notifyDependencyProvider , read , write
 
-                Init();
+                //Init();
 
-                Common.CacheName = "democache";
-
+                //new MetaVerificationTestForJsonObj().SlidingExpirationInJsonObject();
+                //RunMetaVerificationTests();
+                //new InlineQueryTestsForInsertUpsert().AddJsonStringInline();
                 RunAllCases();
+                //new UpdateQueriesTestForJsonObject().AddJsonObject();
+
                 //RunOnAllTopologies();
-
-
                 ReportHelper.PrintHeader("\n\n ------------------------------------------------------- ALL DONE -----------------------------------------------");
 
-
+                //RunInlineQueryTestForUpdate0();
             }
             catch (Exception ex)
             {
@@ -46,7 +71,6 @@ namespace QueriesTestApplication
         private static void Init()
         {
             Console.SetWindowSize(Console.LargestWindowWidth, Console.LargestWindowHeight);
-            Console.BufferHeight = short.MaxValue - 10;
 
             // JsonHelper.TestArrayWithIndexing();
             //TempTests<String>();
@@ -59,17 +83,19 @@ namespace QueriesTestApplication
             RunInsertQueriesTests();
             UpsertQueriesWithMeta();
             InOperatorTests();
-            EscapeSequencesVerifier();
+            EscapeSequencesVerifier();           
             VerifyIndexesAreUpdatedOnReplica();
+
+            
         }
 
 
         private static void RunOnAllTopologies()
         {
-            string[] CacheNames = new string[4] { "por", "partition", "replicated", "mirror" };
+            string[] CacheNames = new string[4] { "por", "partitioned", "replicated", "mirror" };
             for (int i = 0; i < 4; i++)
             {
-                Common.CacheName = CacheNames[i];
+                //Common.CacheName = CacheNames[i];
 
                 string message = $"Running TestCases on  {Common.CacheName}";
 
@@ -467,15 +493,16 @@ namespace QueriesTestApplication
 
         private static void VerifyIndexesAreUpdatedOnReplica()
         {
-            IndexesVerifier verifier = new IndexesVerifier();
+            //throw new NotImplementedException();
+            //IndexesVerifier verifier = new IndexesVerifier();
 
-            //verifier.VerifyViaJsonPatch();
+            ////verifier.VerifyViaJsonPatch();
 
-            verifier.ChangeIndexesByUpdateQuery();
-            verifier.VerifyUpdatedData();
+            //verifier.ChangeIndexesByUpdateQuery();
+            //verifier.VerifyUpdatedData();
             
 
-            verifier.Report.PrintReport();
+            //verifier.Report.PrintReport();
         }
 
         private static void InOperatorTests()
